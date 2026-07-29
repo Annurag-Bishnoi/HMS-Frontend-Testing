@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Stethoscope, Activity, ClipboardList, Pill, Save, CheckCircle, 
-  Search, Plus, Trash2, ArrowLeft, Clock, User, FileText, FlaskConical 
+  Search, Plus, Trash2, ArrowLeft, Clock, User, FileText, FlaskConical, CalendarCheck 
 } from 'lucide-react';
 import DocumentViewerModal from '../../components/common/DocumentViewerModal';
 import { getAppointmentById } from '../../api/appointmentService';
