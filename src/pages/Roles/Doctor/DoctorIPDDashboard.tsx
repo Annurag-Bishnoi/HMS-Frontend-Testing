@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Stethoscope, LogOut, CheckCircle, Clock, FileText } from 'lucide-react';
+import { Stethoscope, LogOut, CheckCircle, Clock, FileText, History, BedDouble } from 'lucide-react';
 import { getDoctorAdmissions, addDailyRound, getDailyRounds, dischargePatient, getNursingCharts } from '../../../api/ipdService';
+import DataTable, { tableHeadClass, tableRowClass, tableCellClass } from '../../../components/common/DataTable';
 
 function DailyRoundModal({ admission, onClose, onDischarge }: { admission: any; onClose: () => void; onDischarge: () => void }) {
   const [notes, setNotes] = useState('');
@@ -155,8 +156,10 @@ function DailyRoundModal({ admission, onClose, onDischarge }: { admission: any; 
 
 export default function DoctorIPDDashboard() {
   const [admissions, setAdmissions] = useState<any[]>([]);
+  const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedAdmission, setSelectedAdmission] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<'ADMITTED' | 'HISTORY'>('ADMITTED');
 
   useEffect(() => {
     fetchData();
@@ -166,8 +169,8 @@ export default function DoctorIPDDashboard() {
     try {
       setLoading(true);
       const data = await getDoctorAdmissions();
-      // Only show currently admitted patients for management
       setAdmissions(data.filter((a: any) => a.status === 'ADMITTED'));
+      setHistory(data.filter((a: any) => a.status === 'DISCHARGED' || a.status === 'CANCELLED'));
     } catch (e) {
       console.error(e);
     } finally {
@@ -185,45 +188,111 @@ export default function DoctorIPDDashboard() {
   }
 
   return (
-    <div className="p-6 space-y-8 max-h-screen overflow-y-auto bg-slate-50">
+    <div className="p-6 space-y-6 max-h-screen overflow-y-auto bg-slate-50">
       <div>
-        <h1 className="text-2xl font-bold text-slate-800">My Admitted Patients</h1>
-        <p className="text-slate-500 text-sm mt-1">Manage your IPD patients, record daily rounds, and process discharges.</p>
+        <h1 className="text-2xl font-bold text-slate-800">IPD Patients</h1>
+        <p className="text-slate-500 text-sm mt-1">Manage your admitted patients and view your discharge history.</p>
       </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {admissions.map(a => (
-          <div key={a.id} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-            <div className="flex justify-between items-start mb-3">
-              <div>
-                <h3 className="font-bold text-slate-800 text-lg">{a.patientName}</h3>
-                <p className="text-xs font-bold text-emerald-600 mt-0.5">{a.bedNumber} • {a.wardName}</p>
+      <div className="flex gap-4 border-b border-slate-200">
+        <button
+          onClick={() => setActiveTab('ADMITTED')}
+          className={`pb-3 font-semibold text-sm flex items-center gap-2 border-b-2 transition-colors ${activeTab === 'ADMITTED' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+        >
+          <BedDouble size={16} /> Currently Admitted ({admissions.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('HISTORY')}
+          className={`pb-3 font-semibold text-sm flex items-center gap-2 border-b-2 transition-colors ${activeTab === 'HISTORY' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+        >
+          <History size={16} /> History of IPD ({history.length})
+        </button>
+      </div>
+
+      {activeTab === 'ADMITTED' ? (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {admissions.map(a => (
+            <div key={a.id} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+              <div className="flex justify-between items-start mb-3">
+                <div>
+                  <h3 className="font-bold text-slate-800 text-lg">{a.patientName}</h3>
+                  <p className="text-xs font-bold text-emerald-600 mt-0.5">{a.bedNumber} • {a.wardName}</p>
+                </div>
               </div>
-            </div>
-            
-            <div className="text-sm text-slate-600 mb-4 line-clamp-2 min-h-[40px]">
-              <span className="font-semibold text-slate-700">Admission Diagnosis:</span> {a.admissionDiagnosis}
-            </div>
+              
+              <div className="text-sm text-slate-600 mb-4 line-clamp-2 min-h-[40px]">
+                <span className="font-semibold text-slate-700">Admission Diagnosis:</span> {a.admissionDiagnosis}
+              </div>
 
-            <div className="flex justify-between items-center text-xs text-slate-500 mb-4">
-              <span className="flex items-center gap-1"><Clock size={12}/> Admitted: {new Date(a.admissionDate).toLocaleDateString()}</span>
-            </div>
+              <div className="flex justify-between items-center text-xs text-slate-500 mb-4">
+                <span className="flex items-center gap-1"><Clock size={12}/> Admitted: {new Date(a.admissionDate).toLocaleDateString()}</span>
+              </div>
 
-            <button 
-              onClick={() => setSelectedAdmission(a)}
-              className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2 text-sm"
-            >
-              <Stethoscope size={16} />
-              Manage Patient
-            </button>
-          </div>
-        ))}
-        {admissions.length === 0 && (
-          <div className="col-span-full p-8 text-center text-slate-500 bg-white rounded-2xl border border-slate-200 border-dashed">
-            You currently have no admitted patients.
-          </div>
-        )}
-      </div>
+              <button 
+                onClick={() => setSelectedAdmission(a)}
+                className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2 text-sm"
+              >
+                <Stethoscope size={16} />
+                Manage Patient
+              </button>
+            </div>
+          ))}
+          {admissions.length === 0 && (
+            <div className="col-span-full p-8 text-center text-slate-500 bg-white rounded-2xl border border-slate-200 border-dashed">
+              You currently have no admitted patients.
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          {history.length === 0 ? (
+            <div className="p-8 text-center text-slate-500">
+              No IPD discharge history found.
+            </div>
+          ) : (
+            <DataTable>
+              <thead className="bg-slate-100 border-b border-slate-200">
+                <tr>
+                  <th className={tableHeadClass}>Patient</th>
+                  <th className={tableHeadClass}>Ward & Bed</th>
+                  <th className={tableHeadClass}>Diagnosis</th>
+                  <th className={tableHeadClass}>Admission Date</th>
+                  <th className={tableHeadClass}>Discharge Date</th>
+                  <th className={tableHeadClass}>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {history.map(h => (
+                  <tr key={h.id} className={tableRowClass}>
+                    <td className={tableCellClass}>
+                      <div className="font-bold text-slate-800">{h.patientName}</div>
+                      <div className="text-xs text-slate-500">{h.patientId}</div>
+                    </td>
+                    <td className={tableCellClass}>
+                      <span className="font-medium text-slate-700">{h.wardName || '—'}</span>
+                      <span className="text-xs text-slate-500 block">{h.bedNumber ? `Bed: ${h.bedNumber}` : ''}</span>
+                    </td>
+                    <td className={tableCellClass}>
+                      <span className="text-sm text-slate-600 line-clamp-1">{h.admissionDiagnosis}</span>
+                    </td>
+                    <td className={`${tableCellClass} text-slate-600 text-sm`}>
+                      {new Date(h.admissionDate).toLocaleDateString()}
+                    </td>
+                    <td className={`${tableCellClass} text-slate-600 text-sm`}>
+                      {h.dischargeDate ? new Date(h.dischargeDate).toLocaleDateString() : '—'}
+                    </td>
+                    <td className={tableCellClass}>
+                      <span className={`px-2 py-1 text-[10px] uppercase font-bold rounded-full ${h.status === 'DISCHARGED' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
+                        {h.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </DataTable>
+          )}
+        </div>
+      )}
 
       {selectedAdmission && (
         <DailyRoundModal 

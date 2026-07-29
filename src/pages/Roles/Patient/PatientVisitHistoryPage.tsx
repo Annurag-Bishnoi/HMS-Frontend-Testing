@@ -4,6 +4,8 @@ import { getUser } from '../../../utils/token';
 import { getPatientByUserId } from '../../../api/patientService';
 import { getVisitsByPatientId } from '../../../api/visitService';
 import { getAdmissionsByPatient, getDailyRounds } from '../../../api/ipdService';
+import DataTable, { tableHeadClass, tableRowClass, tableCellClass } from '../../../components/common/DataTable';
+
 
 function VisitDetailModal({ visit, onClose }: { visit: any; onClose: () => void }) {
   return (
@@ -224,13 +226,13 @@ export default function PatientVisitHistoryPage() {
             <Bed className="text-amber-500" size={24} /> Inpatient Hospital Stays
           </h2>
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-            <table className="min-w-full">
+            <DataTable>
               <thead className="bg-slate-100 border-b border-slate-200">
                 <tr>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Admission Date</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Doctor & Ward</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Diagnosis</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Status</th>
+                  <th className={tableHeadClass}>Admission Date</th>
+                  <th className={tableHeadClass}>Doctor & Ward</th>
+                  <th className={tableHeadClass}>Diagnosis</th>
+                  <th className={tableHeadClass}>Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -239,7 +241,7 @@ export default function PatientVisitHistoryPage() {
                     <td className="px-6 py-4 font-semibold text-slate-800">
                       {adm.admissionDate ? new Date(adm.admissionDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className={tableCellClass}>
                       <p className="font-semibold text-slate-800">Dr. {adm.doctorName}</p>
                       <p className="text-xs text-slate-400">Ward {adm.wardName}</p>
                     </td>
@@ -253,7 +255,7 @@ export default function PatientVisitHistoryPage() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </DataTable>
           </div>
         </div>
       )}
@@ -271,13 +273,13 @@ export default function PatientVisitHistoryPage() {
           </div>
         ) : (
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-            <table className="min-w-full">
+            <DataTable>
               <thead className="bg-slate-100 border-b border-slate-200">
                 <tr>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Date</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Doctor</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Diagnosis</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Items</th>
+                  <th className={tableHeadClass}>Date</th>
+                  <th className={tableHeadClass}>Doctor</th>
+                  <th className={tableHeadClass}>Diagnosis</th>
+                  <th className={tableHeadClass}>Items</th>
                 </tr>
               </thead>
               <tbody>
@@ -287,7 +289,7 @@ export default function PatientVisitHistoryPage() {
                       {v.visitDate ? new Date(v.visitDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                     </td>
                     <td className="px-6 py-4 text-slate-800 font-medium">Dr. {v.doctorName}</td>
-                    <td className="px-6 py-4">
+                    <td className={tableCellClass}>
                       <p className="font-semibold text-slate-700">{v.diagnosis || '—'}</p>
                       {v.notes && <p className="text-xs text-slate-400 mt-0.5 line-clamp-1 max-w-xs">{v.notes}</p>}
                     </td>
@@ -309,7 +311,7 @@ export default function PatientVisitHistoryPage() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </DataTable>
           </div>
         )}
       </div>

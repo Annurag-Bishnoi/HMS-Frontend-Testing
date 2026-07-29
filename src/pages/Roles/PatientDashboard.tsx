@@ -14,6 +14,7 @@ import { getVisitsByPatientId } from '../../api/visitService';
 import { getPrescriptionsByPatientId } from '../../api/prescriptionService';
 import { getAdmissionsByPatient } from '../../api/ipdService';
 import PatientHistoryModal from '../../components/common/PatientHistoryModal';
+import DataTable, { tableHeadClass, tableRowClass, tableCellClass } from '../../components/common/DataTable';
 
 const greeting = () => {
   const h = new Date().getHours();
@@ -205,18 +206,18 @@ export default function PatientDashboard() {
                   <p className="text-sm">No upcoming appointments.</p>
                 </div>
               ) : (
-                <table className="min-w-full">
+                <DataTable>
                   <thead className="bg-slate-100 border-b border-slate-200">
                     <tr>
-                      <th className="px-6 py-4 text-left font-semibold text-slate-700">Date & Time</th>
-                      <th className="px-6 py-4 text-left font-semibold text-slate-700">Doctor</th>
-                      <th className="px-6 py-4 text-left font-semibold text-slate-700">Status</th>
+                      <th className={tableHeadClass}>Date & Time</th>
+                      <th className={tableHeadClass}>Doctor</th>
+                      <th className={tableHeadClass}>Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {upcomingAppts.slice(0, 4).map(a => (
-                      <tr key={a.id} className={`border-b border-slate-100 transition-colors ${a.appointmentDate === todayStr ? 'bg-slate-50' : 'hover:bg-slate-50'}`}>
-                        <td className="px-6 py-4">
+                      <tr key={a.id} className={`${tableRowClass} ${a.appointmentDate === todayStr ? 'bg-slate-50' : ''}`}>
+                        <td className={tableCellClass}>
                           <p className="font-medium text-slate-800">
                             {a.appointmentDate ? new Date(a.appointmentDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                           </p>
@@ -224,8 +225,8 @@ export default function PatientDashboard() {
                             <Clock size={12} /> {a.appointmentTime}
                           </p>
                         </td>
-                        <td className="px-6 py-4 text-slate-700 font-medium">Dr. {a.doctorName || 'Doctor'}</td>
-                        <td className="px-6 py-4">
+                        <td className={`${tableCellClass} text-slate-700 font-medium`}>Dr. {a.doctorName || 'Doctor'}</td>
+                        <td className={tableCellClass}>
                           {a.appointmentDate === todayStr ? (
                             <span className="text-[10px] bg-slate-800 text-white font-bold px-2 py-1 rounded-full">TODAY</span>
                           ) : (
@@ -235,7 +236,7 @@ export default function PatientDashboard() {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </DataTable>
               )}
             </div>
           </div>
@@ -254,26 +255,26 @@ export default function PatientDashboard() {
                   <p className="text-sm">No consultations yet.</p>
                 </div>
               ) : (
-                <table className="min-w-full">
+                <DataTable>
                   <thead className="bg-slate-100 border-b border-slate-200">
                     <tr>
-                      <th className="px-6 py-4 text-left font-semibold text-slate-700">Date</th>
-                      <th className="px-6 py-4 text-left font-semibold text-slate-700">Doctor</th>
-                      <th className="px-6 py-4 text-left font-semibold text-slate-700">Diagnosis</th>
-                      <th className="px-6 py-4 text-right font-semibold text-slate-700">Reports</th>
+                      <th className={tableHeadClass}>Date</th>
+                      <th className={tableHeadClass}>Doctor</th>
+                      <th className={tableHeadClass}>Diagnosis</th>
+                      <th className={`${tableHeadClass} text-right`}>Reports</th>
                     </tr>
                   </thead>
                   <tbody>
                     {visits.slice(0, 4).map((v: any) => (
-                      <tr key={v.visitId} className="border-b hover:bg-slate-50 transition-colors cursor-pointer group">
-                        <td className="px-6 py-4 text-slate-500">
+                      <tr key={v.visitId} className={tableRowClass}>
+                        <td className={`${tableCellClass} text-slate-500`}>
                           {v.visitDate ? new Date(v.visitDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                         </td>
-                        <td className="px-6 py-4 text-slate-700 font-medium">Dr. {v.doctorName}</td>
-                        <td className="px-6 py-4 font-semibold text-slate-800">
+                        <td className={`${tableCellClass} text-slate-700 font-medium`}>Dr. {v.doctorName}</td>
+                        <td className={`${tableCellClass} font-semibold text-slate-800`}>
                           {v.diagnosis || 'No diagnosis'}
                         </td>
-                        <td className="px-6 py-4 text-right">
+                        <td className={`${tableCellClass} text-right`}>
                           <button onClick={() => navigate('/patient/history')} className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors">
                             <FileText size={14} /> Details
                           </button>
@@ -281,7 +282,7 @@ export default function PatientDashboard() {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </DataTable>
               )}
             </div>
           </div>
@@ -295,30 +296,30 @@ export default function PatientDashboard() {
                 </h3>
               </div>
               <div className="overflow-x-auto">
-                <table className="min-w-full">
+                <DataTable>
                   <thead className="bg-slate-100 border-b border-slate-200">
                     <tr>
-                      <th className="px-6 py-4 text-left font-semibold text-slate-700">Admission Date</th>
-                      <th className="px-6 py-4 text-left font-semibold text-slate-700">Ward & Bed</th>
-                      <th className="px-6 py-4 text-left font-semibold text-slate-700">Doctor</th>
-                      <th className="px-6 py-4 text-left font-semibold text-slate-700">Diagnosis</th>
-                      <th className="px-6 py-4 text-left font-semibold text-slate-700">Status</th>
+                      <th className={tableHeadClass}>Admission Date</th>
+                      <th className={tableHeadClass}>Ward & Bed</th>
+                      <th className={tableHeadClass}>Doctor</th>
+                      <th className={tableHeadClass}>Diagnosis</th>
+                      <th className={tableHeadClass}>Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {admissions.slice(0, 3).map((adm: any) => (
-                      <tr key={adm.id} className="border-b hover:bg-slate-50 transition-colors cursor-pointer group">
-                        <td className="px-6 py-4 text-slate-700 font-medium">
+                      <tr key={adm.id} className={tableRowClass}>
+                        <td className={`${tableCellClass} text-slate-700 font-medium`}>
                           {adm.admissionDate ? new Date(adm.admissionDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                         </td>
-                        <td className="px-6 py-4 text-slate-600 font-medium">
+                        <td className={`${tableCellClass} text-slate-600 font-medium`}>
                           {adm.wardName || 'N/A'} - {adm.bedNumber || 'N/A'}
                         </td>
-                        <td className="px-6 py-4 text-slate-700 font-medium">Dr. {adm.doctorName}</td>
-                        <td className="px-6 py-4 font-semibold text-slate-800">
+                        <td className={`${tableCellClass} text-slate-700 font-medium`}>Dr. {adm.doctorName}</td>
+                        <td className={`${tableCellClass} font-semibold text-slate-800`}>
                           {adm.admissionDiagnosis || 'N/A'}
                         </td>
-                        <td className="px-6 py-4">
+                        <td className={tableCellClass}>
                           <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${adm.status === 'DISCHARGED' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
                             {adm.status}
                           </span>
@@ -326,7 +327,7 @@ export default function PatientDashboard() {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </DataTable>
               </div>
             </div>
           )}

@@ -4,6 +4,8 @@ import { getUser } from '../../../utils/token';
 import { getPatientByUserId } from '../../../api/patientService';
 import { getVisitsByPatientId } from '../../../api/visitService';
 import DocumentViewerModal from '../../../components/common/DocumentViewerModal';
+import DataTable, { tableHeadClass, tableRowClass, tableCellClass } from '../../../components/common/DataTable';
+
 
 export default function PatientLabTestsPage() {
   const [allLabs, setAllLabs] = useState<any[]>([]);
@@ -117,13 +119,13 @@ export default function PatientLabTestsPage() {
                   <p className="text-sm text-slate-500 mt-0.5">Dr. {group.doctorName} {group.diagnosis && `• ${group.diagnosis}`}</p>
                 </div>
               </div>
-              <table className="min-w-full">
+              <DataTable>
                 <thead className="bg-slate-100 border-b border-slate-200">
                   <tr>
-                    <th className="px-6 py-4 text-left font-semibold text-slate-700">Test Name</th>
-                    <th className="px-6 py-4 text-left font-semibold text-slate-700">Status</th>
-                    <th className="px-6 py-4 text-left font-semibold text-slate-700">Result</th>
-                    <th className="px-6 py-4 text-left font-semibold text-slate-700">Document</th>
+                    <th className={tableHeadClass}>Test Name</th>
+                    <th className={tableHeadClass}>Status</th>
+                    <th className={tableHeadClass}>Result</th>
+                    <th className={tableHeadClass}>Document</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -131,17 +133,17 @@ export default function PatientLabTestsPage() {
                     const isDone = t.status === 'COMPLETED';
                     return (
                       <tr key={i} className="border-b hover:bg-slate-50 transition-colors cursor-pointer group">
-                        <td className="px-6 py-4">
+                        <td className={tableCellClass}>
                           <p className="font-semibold text-slate-800">{t.testName}</p>
                           {t.testCode && <p className="text-xs text-slate-400">{t.testCode}</p>}
                         </td>
-                        <td className="px-6 py-4">
+                        <td className={tableCellClass}>
                           <span className={`px-2.5 py-1 rounded-full text-xs font-bold flex w-fit items-center gap-1 ${isDone ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
                             {isDone ? <CheckCircle size={12} /> : <Clock size={12} />}
                             {isDone ? 'Completed' : 'Pending'}
                           </span>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className={tableCellClass}>
                           {isDone && t.resultValue ? (
                             <div>
                               <span className="font-bold text-slate-800">{t.resultValue}</span>
@@ -149,7 +151,7 @@ export default function PatientLabTestsPage() {
                             </div>
                           ) : <span className="text-slate-400">—</span>}
                         </td>
-                        <td className="px-6 py-4">
+                        <td className={tableCellClass}>
                           {isDone && t.documentUrl ? (
                             <button onClick={() => setDocUrl(t.documentUrl)}
                                className="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 underline">
@@ -161,7 +163,7 @@ export default function PatientLabTestsPage() {
                     );
                   })}
                 </tbody>
-              </table>
+              </DataTable>
             </div>
           ))}
         </div>

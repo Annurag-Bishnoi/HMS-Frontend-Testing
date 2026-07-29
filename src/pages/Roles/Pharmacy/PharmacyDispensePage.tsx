@@ -1,3 +1,4 @@
+import DataTable, { tableHeadClass, tableRowClass, tableCellClass } from '../../../components/common/DataTable';
 import React, { useState, useEffect } from "react";
 import { Pill, RefreshCw, CheckCircle, Clock, Activity } from "lucide-react";
 import { pharmacyService } from "../../../api/pharmacyService";
@@ -118,14 +119,14 @@ export default function PharmacyDispensePage() {
                 <p className="font-medium">No dispensed orders yet.</p>
               </div>
             ) : (
-              <table className="min-w-full">
+              <DataTable>
                 <thead className="bg-slate-100 border-b border-slate-200">
                   <tr>
-                    <th className="px-6 py-4 text-left font-semibold text-slate-700">Rx ID</th>
-                    <th className="px-6 py-4 text-left font-semibold text-slate-700">Patient</th>
-                    <th className="px-6 py-4 text-left font-semibold text-slate-700">Doctor</th>
-                    <th className="px-6 py-4 text-left font-semibold text-slate-700">Medicines</th>
-                    <th className="px-6 py-4 text-left font-semibold text-slate-700">Status</th>
+                    <th className={tableHeadClass}>Rx ID</th>
+                    <th className={tableHeadClass}>Patient</th>
+                    <th className={tableHeadClass}>Doctor</th>
+                    <th className={tableHeadClass}>Medicines</th>
+                    <th className={tableHeadClass}>Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -137,7 +138,7 @@ export default function PharmacyDispensePage() {
                       <td className="px-6 py-4 text-slate-600 text-xs">
                         {rx.medications?.length ? `${rx.medications.length} item${rx.medications.length > 1 ? 's' : ''}` : '—'}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className={tableCellClass}>
                         <span className="inline-flex items-center gap-1 text-xs font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full">
                           <CheckCircle size={11} /> Dispensed
                         </span>
@@ -145,7 +146,7 @@ export default function PharmacyDispensePage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </DataTable>
             )}
           </div>
         </div>

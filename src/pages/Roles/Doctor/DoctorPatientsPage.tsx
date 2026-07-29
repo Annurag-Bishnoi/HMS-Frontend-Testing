@@ -8,6 +8,14 @@ import { getVisitsByPatientId, getVisitsByDoctorId } from '../../../api/visitSer
 import { getUser } from '../../../utils/token';
 import DocumentViewerModal from '../../../components/common/DocumentViewerModal';
 import PatientHistoryModal from '../../../components/common/PatientHistoryModal';
+import DataTable, { TableEmptyRow, tableHeadClass, tableHeadActionsClass, tableRowClass, tableCellClass } from '../../../components/common/DataTable';
+import { TableViewButton, TableActionCell } from '../../../components/common/TableActions';
+
+const formatPatientId = (id: any) => {
+  if (!id) return '—';
+  const num = String(id).replace(/[^0-9]/g, '');
+  return num ? `PAT-${num.padStart(4, '0')}` : String(id).toUpperCase();
+};
 
 export default function DoctorPatientsPage() {
   const [doctorVisits, setDoctorVisits] = useState<any[]>([]);
@@ -127,59 +135,42 @@ export default function DoctorPatientsPage() {
       </div>
 
       {/* ── Table / List ── */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        {allPatients.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-slate-400">
-            <Users size={48} className="mx-auto mb-4 opacity-40" />
-            <p className="font-medium">No patients found.</p>
-            {search && <p className="text-sm mt-1">Try a different search term.</p>}
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full">
-              <thead className="bg-slate-100 border-b border-slate-200">
-                <tr>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Patient</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Patient ID</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Visits</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Last Visit</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Last Diagnosis</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map(p => (
-                  <tr key={p.id} className="border-b hover:bg-slate-50 transition-colors cursor-pointer group">
-                    <td className="px-6 py-4">
-                      <div className="font-semibold text-slate-800">{p.name}</div>
-                    </td>
-                    <td className="px-6 py-4 text-slate-600 font-medium">#{p.id}</td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center justify-center bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full">
-                        {p.totalVisits}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-slate-600">
-                      {p.lastVisit ? new Date(p.lastVisit).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-emerald-700 font-medium">{p.lastDiagnosis || '—'}</span>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <button
-                        onClick={() => openHistory(p.id, p.name)}
-                        className="bg-blue-50 hover:bg-blue-100 text-blue-600 font-semibold text-sm px-4 py-2 rounded-xl transition-colors inline-flex items-center gap-2"
-                      >
-                        <FileText size={15} /> View History
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      <DataTable>
+        <thead className="bg-slate-100 border-b border-slate-200">
+          <tr>
+            <th className={tableHeadClass}>Patient</th>
+            <th className={tableHeadClass}>Patient ID</th>
+            <th className={tableHeadClass}>Visits</th>
+            <th className={tableHeadClass}>Last Visit</th>
+            <th className={tableHeadClass}>Last Diagnosis</th>
+            <th className={tableHeadActionsClass}>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {allPatients.length === 0 ? (
+            <TableEmptyRow colSpan={6} message={search ? "No patients found. Try a different search term." : "No patients found."} />
+          ) : (
+            filtered.map(p => (
+              <tr key={p.id} className={tableRowClass} onClick={() => openHistory(p.id, p.name)}>
+                <td className={`${tableCellClass} font-semibold`}>{p.name}</td>
+                <td className={tableCellClass}>{formatPatientId(p.id)}</td>
+                <td className={tableCellClass}>
+                  <span className="inline-flex items-center justify-center bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full">
+                    {p.totalVisits}
+                  </span>
+                </td>
+                <td className={tableCellClass}>
+                  {p.lastVisit ? new Date(p.lastVisit).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                </td>
+                <td className={tableCellClass}>{p.lastDiagnosis || '—'}</td>
+                <TableActionCell>
+                  <TableViewButton onClick={() => openHistory(p.id, p.name)} title="View History" />
+                </TableActionCell>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </DataTable>
 
       {/* ── Patient History Modal ── */}
       {selectedPatientId && (

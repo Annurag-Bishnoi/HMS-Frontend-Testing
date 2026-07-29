@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X, CheckCircle, Pill } from "lucide-react";
 import { pharmacyService } from "../../../api/pharmacyService";
 import type { Prescription, DispenseRequest } from "../../../api/pharmacyService";
@@ -13,6 +13,24 @@ interface DispenseModalProps {
 const DispenseModal: React.FC<DispenseModalProps> = ({ isOpen, onClose, onSuccess, prescription }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dispenseItems, setDispenseItems] = useState<{ id: string; qty: number; unitPrice: number }[]>([]);
+
+  useEffect(() => {
+    if (isOpen && prescription) {
+      setDispenseItems(
+        prescription.medications.map(m => ({
+          id: m.medicationCode || '',
+          qty: parseInt(m.quantity || "1"),
+          unitPrice: m.unitPrice || 0
+        }))
+      );
+    }
+  }, [isOpen, prescription]);
+
+  const handleQtyChange = (id: string, val: string) => {
+    const newQty = parseInt(val) || 0;
+    setDispenseItems(prev => prev.map(item => item.id === id ? { ...item, qty: Math.max(0, newQty) } : item));
+  };
 
   if (!isOpen || !prescription) return null;
 
@@ -20,14 +38,18 @@ const DispenseModal: React.FC<DispenseModalProps> = ({ isOpen, onClose, onSucces
     setLoading(true);
     setError(null);
     try {
-      const items = prescription.medications.map(med => ({
-        medicineId: med.medicationCode, // the CIEL ID
-        quantity: parseInt(med.quantity || "1") // Use prescribed quantity
+      const itemsToDispense = dispenseItems.filter(item => item.qty > 0).map(item => ({
+        medicineId: item.id,
+        quantity: item.qty
       }));
+
+      if (itemsToDispense.length === 0) {
+        throw new Error("You must dispense at least one item.");
+      }
 
       const request: DispenseRequest = {
         prescriptionId: prescription.prescriptionId,
-        items: items
+        items: itemsToDispense
       };
 
       await pharmacyService.dispenseMedicine(request);
@@ -99,18 +121,28 @@ const DispenseModal: React.FC<DispenseModalProps> = ({ isOpen, onClose, onSucces
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {prescription.medications.map((med, index) => {
-                    const qty = parseInt(med.quantity || "1");
+                    const dispItem = dispenseItems.find(i => i.id === med.medicationCode);
+                    const qty = dispItem ? dispItem.qty : parseInt(med.quantity || "1");
                     const unitPrice = med.unitPrice || 0; 
-                    const total = med.totalPrice || (qty * unitPrice);
+                    const total = qty * unitPrice;
+                    const prescribedQty = parseInt(med.quantity || "1");
                     
                     return (
-                      <tr key={index}>
+                      <tr key={index} className={qty === 0 ? "opacity-50" : ""}>
                         <td className="px-6 py-4 text-sm text-slate-800 font-medium">
                           {med.medicineName}
-                          <div className="text-[10px] text-slate-500">ID: {med.medicationCode}</div>
+                          <div className="text-[10px] text-slate-500">ID: {med.medicationCode} • Prescribed: {prescribedQty}</div>
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-600 text-center">{med.dosage}</td>
-                        <td className="px-6 py-4 text-sm text-slate-800 text-center font-semibold">{qty}</td>
+                        <td className="px-6 py-4 text-sm text-center font-semibold">
+                          <input 
+                            type="number" 
+                            min="0"
+                            value={qty} 
+                            onChange={(e) => handleQtyChange(med.medicationCode || '', e.target.value)}
+                            className="w-16 px-2 py-1 text-center border border-slate-300 rounded focus:ring-2 focus:ring-indigo-500 outline-none"
+                          />
+                        </td>
                         <td className="px-6 py-4 text-sm text-slate-600 text-right">₹{unitPrice.toFixed(2)}</td>
                         <td className="px-6 py-4 text-sm text-slate-800 text-right font-bold text-indigo-600">₹{total.toFixed(2)}</td>
                       </tr>
@@ -128,7 +160,7 @@ const DispenseModal: React.FC<DispenseModalProps> = ({ isOpen, onClose, onSucces
               <div className="text-right">
                 <p className="text-xs font-semibold text-indigo-700 uppercase tracking-wider mb-1">Estimated Total</p>
                 <p className="text-2xl font-bold text-indigo-700">
-                  ₹{prescription.medications.reduce((sum, med) => sum + (med.totalPrice || (parseInt(med.quantity || "1") * (med.unitPrice || 0))), 0).toFixed(2)}
+                  ₹{dispenseItems.reduce((sum, item) => sum + (item.qty * item.unitPrice), 0).toFixed(2)}
                 </p>
               </div>
             </div>

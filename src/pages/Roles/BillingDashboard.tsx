@@ -3,6 +3,7 @@ import { DollarSign, FileText, CheckCircle, Clock, AlertCircle } from 'lucide-re
 import { billingService } from '../../api/billingService';
 import type { Bill } from '../../api/billingService';
 import InvoiceModal from '../../components/admin/billing/InvoiceModal';
+import DataTable, { tableHeadClass, tableRowClass, tableCellClass, TableEmptyRow } from '../../components/common/DataTable';
 
 export default function BillingDashboard() {
   const [bills, setBills] = useState<Bill[]>([]);
@@ -95,53 +96,48 @@ export default function BillingDashboard() {
               <span className="text-xs font-medium bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full">{pendingBills.length} Action(s) Required</span>
             </div>
             <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead className="bg-slate-100 border-b border-slate-200">
-                  <tr className="border-b hover:bg-slate-50 transition-colors cursor-pointer group">
-                    <th className="px-6 py-4 text-left font-semibold text-slate-700">Invoice ID</th>
-                    <th className="px-6 py-4 text-left font-semibold text-slate-700">Patient Details</th>
-                    <th className="px-6 py-4 text-left font-semibold text-slate-700">Department</th>
-                    <th className="px-6 py-4 text-right font-semibold text-slate-700">Amount</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {loading ? (
-                    <tr><td colSpan={4} className="p-8 text-center text-slate-400">Loading bills...</td></tr>
-                  ) : pendingBills.length === 0 ? (
-                    <tr>
-                      <td colSpan={4} className="p-12 text-center">
-                        <CheckCircle className="w-12 h-12 text-emerald-300 mx-auto mb-3" />
-                        <p className="text-slate-500 text-lg">All caught up! No pending invoices.</p>
+            <DataTable>
+              <thead className="bg-slate-100 border-b border-slate-200">
+                <tr>
+                  <th className={tableHeadClass}>Invoice ID</th>
+                  <th className={tableHeadClass}>Patient Details</th>
+                  <th className={tableHeadClass}>Department</th>
+                  <th className={`${tableHeadClass} text-right`}>Amount</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {loading ? (
+                  <tr><td colSpan={4} className="p-8 text-center text-slate-400">Loading bills...</td></tr>
+                ) : pendingBills.length === 0 ? (
+                  <TableEmptyRow colSpan={4} message="All caught up! No pending invoices." />
+                ) : (
+                  pendingBills.map(bill => (
+                    <tr 
+                      key={bill.id} 
+                      onClick={() => setSelectedBill(bill)}
+                      className={tableRowClass}
+                    >
+                      <td className={tableCellClass}>
+                        <span className="font-medium text-slate-800 group-hover:text-blue-600 transition-colors">#{bill.id.toString().padStart(6, '0')}</span>
+                        <div className="text-xs text-slate-400 mt-1">{new Date(bill.createdAt).toLocaleDateString()}</div>
+                      </td>
+                      <td className={tableCellClass}>
+                        <div className="font-semibold text-slate-800">{bill.patientName}</div>
+                        <div className="text-xs text-slate-500 font-medium mt-0.5">PAT-{String(bill.patientId).padStart(4, '0')}</div>
+                      </td>
+                      <td className={tableCellClass}>
+                        <span className="inline-flex items-center gap-1 font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded text-xs">
+                          {bill.department}
+                        </span>
+                      </td>
+                      <td className={`${tableCellClass} text-right font-bold text-amber-600`}>
+                        ₹{bill.totalAmount.toFixed(2)}
                       </td>
                     </tr>
-                  ) : (
-                    pendingBills.map(bill => (
-                      <tr 
-                        key={bill.id} 
-                        onClick={() => setSelectedBill(bill)}
-                        className="hover:bg-slate-50 transition-colors cursor-pointer group"
-                      >
-                        <td className="px-6 py-4">
-                          <span className="font-medium text-slate-800 group-hover:text-blue-600 transition-colors">#{bill.id.toString().padStart(6, '0')}</span>
-                          <div className="text-xs text-slate-400 mt-1">{new Date(bill.createdAt).toLocaleDateString()}</div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="font-semibold text-slate-800">{bill.patientName}</div>
-                          <div className="text-xs text-slate-500">ID: {bill.patientId}</div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="inline-flex items-center gap-1 font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded text-xs">
-                            {bill.department}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-right font-bold text-amber-600">
-                          ₹{bill.totalAmount.toFixed(2)}
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                  ))
+                )}
+              </tbody>
+            </DataTable>
             </div>
           </div>
         </div>

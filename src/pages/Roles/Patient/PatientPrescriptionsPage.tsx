@@ -3,6 +3,8 @@ import { Pill, RefreshCw, Search, FileText, X, ChevronRight, BarChart2 } from 'l
 import { getUser } from '../../../utils/token';
 import { getPatientByUserId } from '../../../api/patientService';
 import { getPrescriptionsByPatientId } from '../../../api/prescriptionService';
+import DataTable, { tableHeadClass, tableRowClass, tableCellClass } from '../../../components/common/DataTable';
+
 
 function RxModal({ rx, onClose }: { rx: any; onClose: () => void }) {
   const handlePrint = () => window.print();
@@ -32,14 +34,14 @@ function RxModal({ rx, onClose }: { rx: any; onClose: () => void }) {
             <p className="font-bold text-slate-700 text-sm mb-3 flex items-center gap-2"><Pill size={14} className="text-purple-600" /> Medications ({rx.medications?.length || 0})</p>
             {rx.medications?.length > 0 ? (
               <div className="border border-slate-200 rounded-xl overflow-hidden">
-                <table className="min-w-full">
+                <DataTable>
                   <thead className="bg-slate-100 border-b border-slate-200">
                     <tr>
-                      <th className="px-6 py-4 text-left font-semibold text-slate-700">#</th>
-                      <th className="px-6 py-4 text-left font-semibold text-slate-700">Medicine</th>
-                      <th className="px-6 py-4 text-left font-semibold text-slate-700">Dosage</th>
-                      <th className="px-6 py-4 text-left font-semibold text-slate-700">Frequency</th>
-                      <th className="px-6 py-4 text-left font-semibold text-slate-700">Duration</th>
+                      <th className={tableHeadClass}>#</th>
+                      <th className={tableHeadClass}>Medicine</th>
+                      <th className={tableHeadClass}>Dosage</th>
+                      <th className={tableHeadClass}>Frequency</th>
+                      <th className={tableHeadClass}>Duration</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -48,12 +50,12 @@ function RxModal({ rx, onClose }: { rx: any; onClose: () => void }) {
                         <td className="px-6 py-4 text-slate-400">{i + 1}</td>
                         <td className="px-6 py-4 font-bold text-slate-800">{m.medicineName}</td>
                         <td className="px-6 py-4 text-slate-600">{m.dosage}</td>
-                        <td className="px-6 py-4"><span className="text-xs bg-purple-50 text-purple-700 font-semibold px-2 py-0.5 rounded">{m.frequency}</span></td>
+                        <td className={tableCellClass}><span className="text-xs bg-purple-50 text-purple-700 font-semibold px-2 py-0.5 rounded">{m.frequency}</span></td>
                         <td className="px-6 py-4 text-slate-600">{m.duration}</td>
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </DataTable>
               </div>
             ) : <p className="text-slate-400 italic text-sm">No medications.</p>}
           </div>
@@ -124,13 +126,13 @@ export default function PatientPrescriptionsPage() {
           </div>
         ) : (
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-            <table className="min-w-full">
+            <DataTable>
               <thead className="bg-slate-100 border-b border-slate-200">
                 <tr>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Date</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Doctor</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Diagnosis</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Drugs</th>
+                  <th className={tableHeadClass}>Date</th>
+                  <th className={tableHeadClass}>Doctor</th>
+                  <th className={tableHeadClass}>Diagnosis</th>
+                  <th className={tableHeadClass}>Drugs</th>
                 </tr>
               </thead>
               <tbody>
@@ -150,7 +152,7 @@ export default function PatientPrescriptionsPage() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </DataTable>
           </div>
         )}
       </div>

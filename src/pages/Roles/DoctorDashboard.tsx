@@ -7,7 +7,6 @@ import { useNavigate } from 'react-router-dom';
 import { getDoctorQueue, getDoctorAppointments } from '../../api/appointmentService';
 import { getDoctorByUserId } from '../../api/doctorService';
 import { getVisitsByDoctorId } from '../../api/visitService';
-import { getDoctorAdmissions } from '../../api/ipdService';
 import { getUser } from '../../utils/token';
 
 const greeting = () => {
@@ -17,11 +16,16 @@ const greeting = () => {
   return 'Good Evening';
 };
 
+const formatPatientId = (id: any) => {
+  if (!id) return '—';
+  const num = String(id).replace(/[^0-9]/g, '');
+  return num ? `PAT-${num.padStart(4, '0')}` : String(id).toUpperCase();
+};
+
 export default function DoctorDashboard() {
   const navigate = useNavigate();
   const [queue, setQueue] = useState<any[]>([]);
   const [doctorVisits, setDoctorVisits] = useState<any[]>([]);
-  const [ipdPatients, setIpdPatients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [doctorInfo, setDoctorInfo] = useState<any>(null);
 
@@ -35,14 +39,12 @@ export default function DoctorDashboard() {
       const doc = await getDoctorByUserId(String(user.userId));
       if (doc) {
         setDoctorInfo(doc);
-        const [q, visits, ipd] = await Promise.all([
+        const [q, visits] = await Promise.all([
           getDoctorQueue(String(doc.id)),
-          getVisitsByDoctorId(String(doc.id)),
-          getDoctorAdmissions()
+          getVisitsByDoctorId(String(doc.id))
         ]);
         setQueue(Array.isArray(q) ? q : []);
         setDoctorVisits(Array.isArray(visits) ? visits : []);
-        setIpdPatients(Array.isArray(ipd) ? ipd : []);
       }
     } catch (err) {
       console.error('Error fetching doctor dashboard data:', err);
@@ -140,6 +142,7 @@ export default function DoctorDashboard() {
         {[
           { label: 'My Appointments', desc: 'Full schedule & start consultation', icon: Calendar,   color: 'from-blue-500 to-blue-600',    path: '/doctor/appointments' },
           { label: 'My Patients',     desc: 'All treated patients & full history', icon: Users,      color: 'from-purple-500 to-purple-600', path: '/doctor/patients' },
+          { label: 'IPD Patients',    desc: 'Manage admitted patients',            icon: Activity,   color: 'from-indigo-500 to-indigo-600', path: '/doctor/ipd' },
           { label: 'Prescriptions',   desc: 'All issued prescriptions',            icon: Stethoscope,color: 'from-emerald-500 to-emerald-600', path: '/doctor/prescriptions' },
         ].map(n => (
           <button
@@ -188,7 +191,10 @@ export default function DoctorDashboard() {
                     <td className="px-6 py-4 font-mono font-bold text-slate-600 text-sm">
                       {appt.tokenNumber ? `#${appt.tokenNumber}` : '—'}
                     </td>
-                    <td className="px-6 py-4 font-semibold text-slate-800">{appt.patientName}</td>
+                    <td className="px-6 py-4">
+                      <div className="font-semibold text-slate-800">{appt.patientName}</div>
+                      <div className="text-xs text-slate-500 font-medium mt-0.5">{formatPatientId(appt.patientId)}</div>
+                    </td>
                     <td className="px-6 py-4 text-slate-600">{appt.appointmentTime}</td>
                     <td className="px-6 py-4 text-slate-600">{appt.consultationType}</td>
                     <td className="px-6 py-4 text-center">
@@ -250,7 +256,10 @@ export default function DoctorDashboard() {
                     <td className="px-6 py-4 font-mono font-bold text-slate-600 text-sm">
                       {appt.tokenNumber ? `#${appt.tokenNumber}` : '—'}
                     </td>
-                    <td className="px-6 py-4 font-semibold text-slate-800">{appt.patientName}</td>
+                    <td className="px-6 py-4">
+                      <div className="font-semibold text-slate-800">{appt.patientName}</div>
+                      <div className="text-xs text-slate-500 font-medium mt-0.5">{formatPatientId(appt.patientId)}</div>
+                    </td>
                     <td className="px-6 py-4 text-slate-600">{appt.appointmentTime}</td>
                     <td className="px-6 py-4 text-slate-600">{appt.consultationType}</td>
                     <td className="px-6 py-4 text-slate-600 truncate max-w-[180px]">{appt.reasonForVisit || '—'}</td>
@@ -270,53 +279,7 @@ export default function DoctorDashboard() {
         </div>
       </div>
 
-      {/* ── My IPD Patients ── */}
-      {ipdPatients.length > 0 && (
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mt-6">
-          <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-indigo-50/30">
-            <h3 className="font-bold text-slate-800 flex items-center gap-2">
-              <Activity className="text-indigo-600" size={20} />
-              My Admitted IPD Patients
-            </h3>
-            <span className="bg-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded-md">
-              {ipdPatients.length} admitted
-            </span>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full">
-              <thead className="bg-slate-100 border-b border-slate-200">
-                <tr>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Patient Name</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Ward / Bed</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Diagnosis</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Admission Date</th>
-                  <th className="px-6 py-4 text-center font-semibold text-slate-700">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ipdPatients.map((a: any) => (
-                  <tr key={a.id} className="border-b hover:bg-slate-50 transition-colors cursor-pointer group">
-                    <td className="px-6 py-4 font-semibold text-slate-800">{a.patientName}</td>
-                    <td className="px-6 py-4 text-slate-600">
-                      {a.wardName ? `${a.wardName} - ${a.bedNumber}` : <span className="text-amber-500 font-medium">Pending Bed Assignment</span>}
-                    </td>
-                    <td className="px-6 py-4 text-slate-600">{a.admissionDiagnosis}</td>
-                    <td className="px-6 py-4 text-slate-600">{new Date(a.admissionDate).toLocaleDateString()}</td>
-                    <td className="px-6 py-4 text-center">
-                      <button
-                        onClick={() => navigate('/doctor/ipd')}
-                        className="inline-flex items-center gap-2 bg-indigo-50 text-indigo-700 text-xs font-semibold px-4 py-2 rounded-lg hover:bg-indigo-100 transition-colors"
-                      >
-                         View Details
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+      {/* IPD Section has been moved to its own page /doctor/ipd */}
 
     </div>
   );

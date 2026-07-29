@@ -7,6 +7,8 @@ import {
 } from '../../../api/labService';
 import { TestDetailModal } from '../LaboratoryDashboard';
 import DocumentViewerModal from '../../../components/common/DocumentViewerModal';
+import DataTable, { tableHeadClass, tableRowClass, tableCellClass } from '../../../components/common/DataTable';
+
 
 /* ── Status config ── */
 const STATUS: Record<string, { label: string; bg: string; text: string; dot: string; border: string }> = {
@@ -99,14 +101,14 @@ export default function LabResultsPage() {
               <p className="font-medium">No completed results found.</p>
             </div>
           ) : (
-            <table className="min-w-full">
+            <DataTable>
               <thead className="bg-slate-100 border-b border-slate-200">
                 <tr>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Test</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Patient</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Doctor</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Result</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Actions</th>
+                  <th className={tableHeadClass}>Test</th>
+                  <th className={tableHeadClass}>Patient</th>
+                  <th className={tableHeadClass}>Doctor</th>
+                  <th className={tableHeadClass}>Result</th>
+                  <th className={tableHeadClass}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -114,7 +116,7 @@ export default function LabResultsPage() {
                   const cfg = badge(t.status);
                   return (
                     <tr key={t.testId} className="border-b hover:bg-slate-50 transition-colors cursor-pointer group">
-                      <td className="px-6 py-4">
+                      <td className={tableCellClass}>
                         <div className="flex items-center gap-2">
                           <div>
                             <p className="font-bold text-slate-800 text-sm">{t.testName}</p>
@@ -122,11 +124,11 @@ export default function LabResultsPage() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className={tableCellClass}>
                         <p className="font-medium text-slate-700 text-xs">{t.patientName}</p>
                       </td>
                       <td className="px-6 py-4 text-xs text-slate-600">Dr. {t.doctorName}</td>
-                      <td className="px-6 py-4">
+                      <td className={tableCellClass}>
                         <div className="flex flex-col gap-1">
                           <p className="text-emerald-700 font-bold text-sm">{t.resultValue}</p>
                           <span className={`inline-flex w-fit items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${cfg.bg} ${cfg.text}`}>
@@ -134,7 +136,7 @@ export default function LabResultsPage() {
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className={tableCellClass}>
                         <div className="flex items-center gap-1.5">
                           <button onClick={() => setDetailModal(t)} title="View details"
                             className="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 transition text-xs font-semibold">
@@ -153,7 +155,7 @@ export default function LabResultsPage() {
                   );
                 })}
               </tbody>
-            </table>
+            </DataTable>
           )}
         </div>
         <div className="px-5 py-3 border-t border-slate-50 flex justify-between items-center text-xs text-slate-400">

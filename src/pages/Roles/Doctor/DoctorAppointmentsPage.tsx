@@ -8,6 +8,7 @@ import { getDoctorAppointments, getDoctorQueue } from '../../../api/appointmentS
 import { getDoctorByUserId } from '../../../api/doctorService';
 import { getUser } from '../../../utils/token';
 import PatientHistoryModal from '../../../components/common/PatientHistoryModal';
+import DataTable, { tableHeadClass, tableRowClass, tableCellClass } from '../../../components/common/DataTable';
 
 const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; dot: string }> = {
   SCHEDULED:       { label: 'Scheduled',         bg: 'bg-blue-50',    text: 'text-blue-700',    dot: 'bg-blue-500' },
@@ -21,6 +22,12 @@ const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; d
 
 const getStatusConfig = (status: string) =>
   STATUS_CONFIG[status] ?? { label: status, bg: 'bg-slate-50', text: 'text-slate-700', dot: 'bg-slate-400' };
+
+const formatPatientId = (id: any) => {
+  if (!id) return '—';
+  const num = String(id).replace(/[^0-9]/g, '');
+  return num ? `PAT-${num.padStart(4, '0')}` : String(id).toUpperCase();
+};
 
 const FILTERS = ['ALL', 'TODAY', 'UPCOMING', 'COMPLETED', 'READY_FOR_DOCTOR', 'CANCELLED'];
 
@@ -199,87 +206,85 @@ export default function DoctorAppointmentsPage() {
             <p className="font-medium">No appointments found for this filter.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full">
-              <thead className="bg-slate-100 border-b border-slate-200">
-                <tr>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Patient</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Date & Time</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Type</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Reason</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Status</th>
-                  <th className="px-6 py-4 text-center font-semibold text-slate-700">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map(appt => {
-                  const cfg = getStatusConfig(appt.status);
-                  const isToday = appt.appointmentDate === todayStr;
-                  const canConsult = appt.status === 'READY_FOR_DOCTOR' || appt.status === 'IN_CONSULTATION';
-                  return (
-                    <tr key={appt.id} className={`border-b border-slate-100 transition-colors hover:bg-slate-50 ${isToday ? 'bg-blue-50/30' : ''}`}>
-                      <td className="px-6 py-4">
-                        <div>
-                          <button 
-                            onClick={() => { setSelectedPatientId(String(appt.patientId)); setSelectedPatientName(appt.patientName); }}
-                            className="font-semibold text-slate-800 hover:text-blue-600 hover:underline text-left flex items-center gap-1"
-                          >
-                            {appt.patientName} <FileText size={12} className="text-slate-400" />
-                          </button>
-                          <div className="text-xs text-slate-500 mt-0.5">ID #{appt.patientId}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="font-medium text-slate-800">
-                          {appt.appointmentDate ? new Date(appt.appointmentDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
-                          {isToday && <span className="ml-2 text-[10px] font-bold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">TODAY</span>}
-                        </div>
-                        <div className="text-sm text-slate-500 flex items-center gap-1 mt-0.5">
-                          <Clock size={12} /> {appt.appointmentTime || '—'}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-sm font-medium text-slate-700 bg-slate-100 px-2 py-1 rounded">
-                          {appt.consultationType || 'General'}
+          <DataTable>
+            <thead className="bg-slate-100 border-b border-slate-200">
+              <tr>
+                <th className={tableHeadClass}>Patient</th>
+                <th className={tableHeadClass}>Date & Time</th>
+                <th className={tableHeadClass}>Type</th>
+                <th className={tableHeadClass}>Reason</th>
+                <th className={tableHeadClass}>Status</th>
+                <th className={`${tableHeadClass} text-center`}>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(appt => {
+                const cfg = getStatusConfig(appt.status);
+                const isToday = appt.appointmentDate === todayStr;
+                const canConsult = appt.status === 'READY_FOR_DOCTOR' || appt.status === 'IN_CONSULTATION';
+                return (
+                  <tr key={appt.id} className={`${tableRowClass} ${isToday ? 'bg-blue-50/30' : ''}`}>
+                    <td className={tableCellClass}>
+                      <div>
+                        <button 
+                          onClick={() => { setSelectedPatientId(String(appt.patientId)); setSelectedPatientName(appt.patientName); }}
+                          className="font-semibold text-slate-800 hover:text-blue-600 hover:underline text-left flex items-center gap-1"
+                        >
+                          {appt.patientName} <FileText size={12} className="text-slate-400" />
+                        </button>
+                        <div className="text-xs text-slate-500 font-medium mt-0.5">{formatPatientId(appt.patientId)}</div>
+                      </div>
+                    </td>
+                    <td className={tableCellClass}>
+                      <div className="font-medium text-slate-800">
+                        {appt.appointmentDate ? new Date(appt.appointmentDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                        {isToday && <span className="ml-2 text-[10px] font-bold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">TODAY</span>}
+                      </div>
+                      <div className="text-sm text-slate-500 flex items-center gap-1 mt-0.5">
+                        <Clock size={12} /> {appt.appointmentTime || '—'}
+                      </div>
+                    </td>
+                    <td className={tableCellClass}>
+                      <span className="text-sm font-medium text-slate-700 bg-slate-100 px-2 py-1 rounded">
+                        {appt.consultationType || 'General'}
+                      </span>
+                    </td>
+                    <td className={tableCellClass}>
+                      <span className="text-sm text-slate-600 truncate max-w-[150px] inline-block" title={appt.reasonForVisit}>
+                        {appt.reasonForVisit || '—'}
+                      </span>
+                    </td>
+                    <td className={tableCellClass}>
+                      <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${cfg.bg} ${cfg.text}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+                        {cfg.label}
+                      </span>
+                    </td>
+                    <td className={`${tableCellClass} text-center`}>
+                      {canConsult ? (
+                        <button
+                          onClick={() => navigate(`/doctor/workspace/${appt.id}`)}
+                          className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors flex items-center gap-1 shadow-sm mx-auto"
+                        >
+                          <Stethoscope size={13} /> Start
+                        </button>
+                      ) : appt.status === 'COMPLETED' ? (
+                        <span className="flex items-center justify-center gap-1 text-xs text-emerald-600 font-medium">
+                          <CheckCircle size={14} /> Done
                         </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-sm text-slate-600 truncate max-w-[150px] inline-block" title={appt.reasonForVisit}>
-                          {appt.reasonForVisit || '—'}
+                      ) : appt.status === 'CANCELLED' ? (
+                        <span className="flex items-center justify-center gap-1 text-xs text-red-400 font-medium">
+                          <XCircle size={14} /> Cancelled
                         </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${cfg.bg} ${cfg.text}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
-                          {cfg.label}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        {canConsult ? (
-                          <button
-                            onClick={() => navigate(`/doctor/workspace/${appt.id}`)}
-                            className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors flex items-center gap-1 shadow-sm"
-                          >
-                            <Stethoscope size={13} /> Start
-                          </button>
-                        ) : appt.status === 'COMPLETED' ? (
-                          <span className="flex items-center justify-center gap-1 text-xs text-emerald-600 font-medium">
-                            <CheckCircle size={14} /> Done
-                          </span>
-                        ) : appt.status === 'CANCELLED' ? (
-                          <span className="flex items-center justify-center gap-1 text-xs text-red-400 font-medium">
-                            <XCircle size={14} /> Cancelled
-                          </span>
-                        ) : (
-                          <span className="text-xs text-slate-400">Awaiting</span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                      ) : (
+                        <span className="text-xs text-slate-400">Awaiting</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </DataTable>
         )}
       </div>
 

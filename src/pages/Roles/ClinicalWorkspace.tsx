@@ -18,6 +18,7 @@ interface MedicationDto {
   frequency: string;
   duration: string;
   instructions: string;
+  quantity?: string;
 }
 
   interface LabTestDto {
@@ -59,6 +60,7 @@ export default function ClinicalWorkspace() {
 
   const [showLabsModal, setShowLabsModal] = useState(false);
   const [showIpdModal, setShowIpdModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [selectedHistoryVisit, setSelectedHistoryVisit] = useState<any>(null);
   const [viewReportUrl, setViewReportUrl] = useState<string | null>(null);
 
@@ -148,10 +150,11 @@ export default function ClinicalWorkspace() {
       setMedications([...medications, {
         medicineName: concept.conceptName,
         medicationCode: concept.cielId.toString(),
-        dosage: '1 tab',
+        dosage: '1 tab', // Kept for backend compatibility, but hidden in UI
         frequency: '1-0-1 (BID)',
         duration: '5 days',
-        instructions: 'After meal'
+        instructions: 'After meal',
+        quantity: '10'
       }]);
       setSearchQuery('');
     } else if (searchType === 'test') {
@@ -176,9 +179,30 @@ export default function ClinicalWorkspace() {
     setLabTests(newTests);
   };
 
+  const calculateFrequencyMultiplier = (freq: string): number => {
+    if (freq.includes('1-0-1')) return 2;
+    if (freq.includes('1-0-0')) return 1;
+    if (freq.includes('0-0-1')) return 1;
+    if (freq.includes('1-1-1-1')) return 4;
+    if (freq.includes('1-1-1')) return 3;
+    if (freq.includes('STAT')) return 1;
+    return 1;
+  };
+
   const updateMedication = (index: number, field: keyof MedicationDto, value: any) => {
     const newMeds = [...medications];
     newMeds[index] = { ...newMeds[index], [field]: value };
+    
+    // Auto-calculate quantity
+    if (field === 'frequency' || field === 'duration') {
+      const med = newMeds[index];
+      const freqMultiplier = calculateFrequencyMultiplier(med.frequency);
+      // Extract number from duration string (e.g. "5 days" -> 5)
+      const match = med.duration.match(/\d+/);
+      const days = match ? parseInt(match[0]) : 1;
+      newMeds[index].quantity = (freqMultiplier * days).toString();
+    }
+
     setMedications(newMeds);
   };
 
@@ -257,8 +281,7 @@ export default function ClinicalWorkspace() {
         medications,
         labTests
       });
-      alert("Consultation completed successfully!");
-      navigate('/doctor/dashboard');
+      setShowSuccessModal(true);
     } catch (err: any) {
       alert("Error completing encounter: " + (err.response?.data?.message || err.message));
     } finally {
@@ -567,7 +590,6 @@ export default function ClinicalWorkspace() {
                       </button>
                       <h5 className="font-bold text-slate-800 text-sm pr-6 mb-2 leading-tight">{med.medicineName}</h5>
                       <div className="grid grid-cols-2 gap-2 mb-2">
-                        <input type="text" value={med.dosage} onChange={e => updateMedication(index, 'dosage', e.target.value)} className="text-xs border border-slate-200 rounded p-1.5 focus:border-blue-500 outline-none" placeholder="Dosage (e.g. 1 tab)"/>
                         <select value={med.frequency} onChange={e => updateMedication(index, 'frequency', e.target.value)} className="text-xs border border-slate-200 rounded p-1.5 focus:border-blue-500 outline-none bg-white">
                           <option value="1-0-1 (BID)">1-0-1 (BID)</option>
                           <option value="1-0-0 (Morning)">1-0-0 (Morning)</option>
@@ -577,13 +599,25 @@ export default function ClinicalWorkspace() {
                           <option value="As needed (PRN)">As needed (PRN)</option>
                           <option value="STAT (Immediately)">STAT (Immediately)</option>
                         </select>
-                        <input type="text" value={med.duration} onChange={e => updateMedication(index, 'duration', e.target.value)} className="text-xs border border-slate-200 rounded p-1.5 focus:border-blue-500 outline-none" placeholder="Duration"/>
-                        <select value={med.instructions} onChange={e => updateMedication(index, 'instructions', e.target.value)} className="text-xs border border-slate-200 rounded p-1.5 focus:border-blue-500 outline-none bg-white">
-                            <option value="After meal">After meal</option>
-                            <option value="Before meal">Before meal</option>
-                            <option value="Empty stomach">Empty stomach</option>
-                            <option value="With food">With food</option>
-                        </select>
+                        <div>
+                          <input type="text" list="duration-options" value={med.duration} onChange={e => updateMedication(index, 'duration', e.target.value)} className="w-full text-xs border border-slate-200 rounded p-1.5 focus:border-blue-500 outline-none" placeholder="Duration (e.g. 5 days)"/>
+                          <datalist id="duration-options">
+                            <option value="3 days" />
+                            <option value="5 days" />
+                            <option value="10 days" />
+                            <option value="20 days" />
+                            <option value="30 days" />
+                          </datalist>
+                        </div>
+                        <div className="flex gap-1 col-span-2">
+                          <select value={med.instructions} onChange={e => updateMedication(index, 'instructions', e.target.value)} className="flex-1 text-xs border border-slate-200 rounded p-1.5 focus:border-blue-500 outline-none bg-white">
+                              <option value="After meal">After meal</option>
+                              <option value="Before meal">Before meal</option>
+                              <option value="Empty stomach">Empty stomach</option>
+                              <option value="With food">With food</option>
+                          </select>
+                          <input type="text" value={med.quantity || ''} onChange={e => updateMedication(index, 'quantity', e.target.value)} className="w-24 text-xs border border-slate-200 rounded p-1.5 focus:border-blue-500 outline-none font-bold text-indigo-700 bg-indigo-50" placeholder="Total Qty" title="Total Quantity"/>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -681,6 +715,33 @@ export default function ClinicalWorkspace() {
                   {submitting ? <Activity className="animate-spin" size={18} /> : "Confirm & Send"}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-6 text-center">
+              <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle size={32} />
+              </div>
+              <h2 className="text-xl font-bold text-slate-800 mb-2">Consultation Completed!</h2>
+              <p className="text-slate-500 text-sm mb-6">
+                The encounter has been finalized. Prescriptions and lab orders have been dispatched.
+              </p>
+              
+              <button 
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  navigate('/doctor/dashboard');
+                }}
+                className="w-full px-4 py-2.5 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-colors shadow-sm"
+              >
+                Return to Dashboard
+              </button>
             </div>
           </div>
         </div>

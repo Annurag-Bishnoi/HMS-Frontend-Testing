@@ -7,6 +7,9 @@ import {
 import { pharmacyService } from "../../api/pharmacyService";
 import type { InventoryItem, Prescription } from "../../api/pharmacyService";
 import { getUser } from "../../utils/token";
+import DataTable, { tableHeadClass, tableRowClass, tableCellClass } from "../../components/common/DataTable";
+import DispenseModal from "../../components/admin/pharmacy/DispenseModal";
+import PendingPrescriptionsTable from "../../components/admin/pharmacy/PendingPrescriptionsTable";
 
 export default function PharmacistDashboard() {
   const navigate = useNavigate();
@@ -14,6 +17,7 @@ export default function PharmacistDashboard() {
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null);
 
   const user = getUser();
 
@@ -131,61 +135,7 @@ export default function PharmacistDashboard() {
       </div>
 
       {/* ── Main Dashboard Content ── */}
-      <div className="grid lg:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        
-        {/* Urgent Actions: Low Stock */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
-          <div className="bg-slate-900 px-5 py-4 flex justify-between items-center text-white">
-            <h3 className="font-bold flex items-center gap-2">
-              <AlertTriangle size={18} className="text-amber-400" /> 
-              Urgent Restock Needed
-            </h3>
-            <button 
-              onClick={() => navigate('/pharmacy/inventory')}
-              className="text-xs bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded transition font-medium"
-            >
-              View Inventory
-            </button>
-          </div>
-          
-          <div className="p-0 flex-1 overflow-auto max-h-[400px]">
-            {loading ? (
-              <div className="flex justify-center py-10"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-slate-400"></div></div>
-            ) : lowStockItems.length === 0 ? (
-              <div className="text-center py-12 text-slate-400">
-                <CheckCircle size={40} className="mx-auto mb-3 text-emerald-400 opacity-50" />
-                <p className="font-medium text-slate-500">Stock levels are optimal.</p>
-                <p className="text-sm">No critical shortages detected.</p>
-              </div>
-            ) : (
-              <table className="min-w-full">
-                <thead className="bg-slate-100 border-b border-slate-200">
-                  <tr>
-                    <th className="px-6 py-4 text-left font-semibold text-slate-700">Medicine</th>
-                    <th className="px-6 py-4 text-left font-semibold text-slate-700">Category</th>
-                    <th className="px-6 py-4 text-right font-semibold text-slate-700">Current Stock</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {lowStockItems.map(item => (
-                    <tr key={item.inventoryItemId} className="border-b hover:bg-slate-50 transition-colors cursor-pointer group">
-                      <td className="px-6 py-4 font-semibold text-slate-800">
-                        {item.medicineName}
-                        <div className="text-xs font-normal text-slate-500 mt-0.5">Code: {item.cielConceptId}</div>
-                      </td>
-                      <td className="px-6 py-4 text-slate-600">Medicine</td>
-                      <td className="px-6 py-4 text-right">
-                        <span className="inline-flex items-center gap-1 font-bold text-amber-700 bg-amber-100 px-2.5 py-1 rounded-md text-xs">
-                          {item.totalStock} units
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </div>
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
 
         {/* Pending Queue */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
@@ -212,41 +162,28 @@ export default function PharmacistDashboard() {
                 <p className="text-sm">All orders have been fulfilled.</p>
               </div>
             ) : (
-              <table className="min-w-full">
-                <thead className="bg-slate-100 border-b border-slate-200">
-                  <tr>
-                    <th className="px-6 py-4 text-left font-semibold text-slate-700">Patient</th>
-                    <th className="px-6 py-4 text-left font-semibold text-slate-700">Doctor</th>
-                    <th className="px-6 py-4 text-left font-semibold text-slate-700">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {prescriptions.slice(0, 10).map(px => (
-                    <tr key={px.prescriptionId} className="border-b hover:bg-slate-50 transition-colors cursor-pointer group">
-                      <td className="px-6 py-4 font-semibold text-slate-800">
-                        {px.patient?.name || 'Unknown Patient'}
-                      </td>
-                      <td className="px-6 py-4 text-slate-600 text-xs">
-                        Dr. {px.doctor?.name || 'Unknown Doctor'}
-                      </td>
-                      <td className="px-6 py-4">
-                        {px.status === 'PENDING' || px.status === 'CREATED' ? (
-                          <span className="inline-flex items-center gap-1 font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded text-[10px] uppercase">
-                            Pending
-                          </span>
-                        ) : (
-                          <span className="text-xs text-slate-500 font-medium">{px.status}</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <div className="border-t border-slate-100">
+                <PendingPrescriptionsTable 
+                  prescriptions={prescriptions} 
+                  onDispense={(px) => setSelectedPrescription(px)} 
+                />
+              </div>
             )}
           </div>
         </div>
 
       </div>
+
+      {/* Dispense Modal */}
+      <DispenseModal 
+        isOpen={!!selectedPrescription}
+        prescription={selectedPrescription} 
+        onClose={() => setSelectedPrescription(null)} 
+        onSuccess={() => {
+          setSelectedPrescription(null);
+          fetchData();
+        }}
+      />
     </div>
   );
 }

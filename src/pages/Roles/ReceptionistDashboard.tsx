@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { getAppointments } from '../../api/appointmentService';
 import { getUser } from '../../utils/token';
 import TriageVitalsModal from '../../components/admin/appointments/TriageVitalsModal';
+import DataTable, { tableHeadClass, tableRowClass, tableCellClass } from '../../components/common/DataTable';
 
 /* ─── Unified status config ─── */
 const STATUS: Record<string, { label: string; bg: string; text: string; dot: string }> = {
@@ -217,43 +218,43 @@ export default function ReceptionistDashboard() {
               </button>
             </div>
           ) : (
-            <table className="min-w-full">
+            <DataTable>
               <thead className="bg-slate-100 border-b border-slate-200">
                 <tr>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Token</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Time</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Patient</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Doctor</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Status</th>
-                  <th className="px-6 py-4 text-left font-semibold text-slate-700">Action</th>
+                  <th className={tableHeadClass}>Token</th>
+                  <th className={tableHeadClass}>Time</th>
+                  <th className={tableHeadClass}>Patient</th>
+                  <th className={tableHeadClass}>Doctor</th>
+                  <th className={tableHeadClass}>Status</th>
+                  <th className={tableHeadClass}>Action</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredQueue.map(appt => {
                   const cfg = badge(appt.status);
                   return (
-                    <tr key={appt.id} className="border-b hover:bg-slate-50 transition-colors cursor-pointer group">
-                      <td className="px-6 py-4 font-mono text-slate-600 font-bold text-sm">
+                    <tr key={appt.id} className={tableRowClass}>
+                      <td className={`${tableCellClass} font-mono text-slate-600 font-bold text-sm`}>
                         {appt.tokenNumber ? `#${appt.tokenNumber}` : '—'}
                       </td>
-                      <td className="px-6 py-4 font-mono text-slate-700 font-medium">{appt.appointmentTime || '—'}</td>
-                      <td className="px-6 py-4">
+                      <td className={`${tableCellClass} font-mono text-slate-700 font-medium`}>{appt.appointmentTime || '—'}</td>
+                      <td className={tableCellClass}>
                         <p className="font-semibold text-slate-800 leading-tight">{appt.patientName}</p>
                         <p className="text-xs text-slate-500 mt-0.5 truncate max-w-[150px]">{appt.reasonForVisit || appt.consultationType}</p>
                       </td>
-                      <td className="px-6 py-4 text-slate-600 text-sm">{appt.doctorName || '—'}</td>
-                      <td className="px-6 py-4">
+                      <td className={`${tableCellClass} text-slate-600 text-sm`}>{appt.doctorName || '—'}</td>
+                      <td className={tableCellClass}>
                         <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${cfg.bg} ${cfg.text}`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
                           {cfg.label}
                         </span>
                       </td>
-                      <td className="px-6 py-4">{getAction(appt)}</td>
+                      <td className={tableCellClass}>{getAction(appt)}</td>
                     </tr>
                   );
                 })}
               </tbody>
-            </table>
+            </DataTable>
           )}
         </div>
       </div>

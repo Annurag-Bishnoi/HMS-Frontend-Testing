@@ -8,6 +8,7 @@ import { getDoctorByUserId } from '../../../api/doctorService';
 import { getPrescriptionsByDoctorId, type PrescriptionResponse } from '../../../api/prescriptionService';
 import { getUser } from '../../../utils/token';
 import PatientHistoryModal from '../../../components/common/PatientHistoryModal';
+import DataTable, { tableHeadClass, tableRowClass, tableCellClass } from '../../../components/common/DataTable';
 
 /* ─── Status Badge ─────────────────────────────────── */
 const STATUS: Record<string, { label: string; bg: string; text: string }> = {
@@ -16,6 +17,12 @@ const STATUS: Record<string, { label: string; bg: string; text: string }> = {
   CANCELLED: { label: 'Cancelled', bg: 'bg-red-50',     text: 'text-red-600'     },
 };
 const badge = (s?: string) => STATUS[s ?? 'CREATED'] ?? STATUS.CREATED;
+
+const formatPatientId = (id: any) => {
+  if (!id) return '—';
+  const num = String(id).replace(/[^0-9]/g, '');
+  return num ? `PAT-${num.padStart(4, '0')}` : String(id).toUpperCase();
+};
 
 /* ─── Printable Rx ─────────────────────────────────── */
 function PrintableRx({ rx, doctorInfo }: { rx: PrescriptionResponse; doctorInfo: any }) {
@@ -28,7 +35,7 @@ function PrintableRx({ rx, doctorInfo }: { rx: PrescriptionResponse; doctorInfo:
       <div className="flex justify-between mb-4 text-xs">
         <div>
           <p><strong>Patient:</strong> {rx.patientName}</p>
-          <p><strong>Patient ID:</strong> #{rx.patientId}</p>
+          <p><strong>Patient ID:</strong> {formatPatientId(rx.patientId)}</p>
           <p><strong>Diagnosis:</strong> {rx.diagnosis}</p>
         </div>
         <div className="text-right">
@@ -104,7 +111,7 @@ function PrescriptionModal({ rx, onClose, doctorInfo }: { rx: PrescriptionRespon
             <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1"><User size={11}/> Patient</p>
               <p className="font-bold text-slate-800">{rx.patientName}</p>
-              <p className="text-sm text-slate-500">ID #{rx.patientId}</p>
+              <p className="text-sm text-slate-500 font-medium mt-0.5">{formatPatientId(rx.patientId)}</p>
             </div>
             <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">Diagnosis</p>
@@ -118,15 +125,15 @@ function PrescriptionModal({ rx, onClose, doctorInfo }: { rx: PrescriptionRespon
               <Pill size={15} className="text-blue-600" /> Medications Prescribed ({rx.medications.length})
             </h4>
             <div className="border border-slate-200 rounded-xl overflow-hidden">
-              <table className="min-w-full">
+              <DataTable>
                 <thead className="bg-slate-100 border-b border-slate-200">
                   <tr>
-                    <th className="px-6 py-4 text-left font-semibold text-slate-700">#</th>
-                    <th className="px-6 py-4 text-left font-semibold text-slate-700">Medicine</th>
-                    <th className="px-6 py-4 text-left font-semibold text-slate-700">Dosage</th>
-                    <th className="px-6 py-4 text-left font-semibold text-slate-700">Frequency</th>
-                    <th className="px-6 py-4 text-left font-semibold text-slate-700">Duration</th>
-                    <th className="px-6 py-4 text-left font-semibold text-slate-700">Instructions</th>
+                    <th className={tableHeadClass}>#</th>
+                    <th className={tableHeadClass}>Medicine</th>
+                    <th className={tableHeadClass}>Dosage</th>
+                    <th className={tableHeadClass}>Frequency</th>
+                    <th className={tableHeadClass}>Duration</th>
+                    <th className={tableHeadClass}>Instructions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -136,22 +143,22 @@ function PrescriptionModal({ rx, onClose, doctorInfo }: { rx: PrescriptionRespon
                     </tr>
                   ) : (
                     rx.medications.map((m, i) => (
-                      <tr key={i} className={`border-b border-slate-100 ${i % 2 === 0 ? '' : 'bg-slate-50/50'}`}>
-                        <td className="px-6 py-4 text-slate-500 font-medium">{i + 1}</td>
-                        <td className="px-6 py-4">
+                      <tr key={i} className={`${tableRowClass} ${i % 2 === 0 ? '' : 'bg-slate-50/50'}`}>
+                        <td className={`${tableCellClass} text-slate-500 font-medium`}>{i + 1}</td>
+                        <td className={tableCellClass}>
                           <div className="font-bold text-slate-800">{m.medicineName}</div>
                         </td>
-                        <td className="px-6 py-4 text-slate-700">{m.dosage}</td>
-                        <td className="px-6 py-4">
+                        <td className={`${tableCellClass} text-slate-700`}>{m.dosage}</td>
+                        <td className={tableCellClass}>
                           <span className="text-xs bg-slate-100 text-slate-700 font-semibold px-2 py-0.5 rounded">{m.frequency}</span>
                         </td>
-                        <td className="px-6 py-4 text-slate-700">{m.duration}</td>
-                        <td className="px-6 py-4 text-slate-500 italic text-xs">{m.instructions || '—'}</td>
+                        <td className={`${tableCellClass} text-slate-700`}>{m.duration}</td>
+                        <td className={`${tableCellClass} text-slate-500 italic text-xs`}>{m.instructions || '—'}</td>
                       </tr>
                     ))
                   )}
                 </tbody>
-              </table>
+              </DataTable>
             </div>
           </div>
 
@@ -336,77 +343,75 @@ export default function DoctorPrescriptionsPage() {
                 <p className="font-medium">No prescriptions found.</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full">
-                  <thead className="bg-slate-100 border-b border-slate-200">
-                    <tr>
-                      <th className="px-6 py-4 text-left font-semibold text-slate-700">Rx #</th>
-                      <th className="px-6 py-4 text-left font-semibold text-slate-700" onClick={() => toggleSort('patient')}>
-                        Patient <SortIcon f="patient" />
-                      </th>
-                      <th className="px-6 py-4 text-left font-semibold text-slate-700">Diagnosis</th>
-                      <th className="px-6 py-4 text-left font-semibold text-slate-700" onClick={() => toggleSort('drugs')}>
-                        Drugs <SortIcon f="drugs" />
-                      </th>
-                      <th className="px-6 py-4 text-left font-semibold text-slate-700" onClick={() => toggleSort('date')}>
-                        Date <SortIcon f="date" />
-                      </th>
-                      <th className="px-6 py-4 text-center font-semibold text-slate-700">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {list.map(rx => {
-                      const { label, bg, text } = badge(rx.status);
-                      const isToday = rx.createdAt?.startsWith(todayStr);
-                      return (
-                        <tr key={rx.prescriptionId} className={`border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer ${isToday ? 'bg-amber-50/10' : ''}`} onClick={() => setSelected(rx)}>
-                          <td className="px-6 py-4 text-slate-500 font-mono text-sm">#{rx.prescriptionId}</td>
-                          <td className="px-6 py-4">
-                            <div>
-                              <button 
-                                onClick={(e) => { 
-                                  e.stopPropagation(); 
-                                  setSelectedPatientId(String(rx.patientId)); 
-                                  setSelectedPatientName(rx.patientName); 
-                                }}
-                                className="font-semibold text-slate-800 hover:text-blue-600 hover:underline text-left flex items-center gap-1 text-sm"
-                              >
-                                {rx.patientName} <FileText size={12} className="text-slate-400" />
-                              </button>
-                              <p className="text-xs text-slate-400 mt-0.5">ID #{rx.patientId}</p>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <p className="text-sm font-medium text-emerald-700 max-w-[160px] truncate">{rx.diagnosis}</p>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="flex flex-wrap gap-1">
-                              {(rx.medications || []).slice(0, 2).map((m, i) => (
-                                <span key={i} className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">{m.medicineName}</span>
-                              ))}
-                              {(rx.medications?.length || 0) > 2 && (
-                                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-bold">+{(rx.medications.length - 2)}</span>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-sm text-slate-600">
-                            {rx.createdAt ? new Date(rx.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
-                            {isToday && <span className="ml-2 text-[10px] bg-amber-100 text-amber-700 font-bold px-1.5 py-0.5 rounded">TODAY</span>}
-                          </td>
-                          <td className="px-6 py-4 text-center">
-                            <button
-                              onClick={e => { e.stopPropagation(); setSelected(rx); }}
-                              className="bg-blue-50 hover:bg-blue-100 text-blue-600 text-xs font-semibold px-4 py-2 rounded-lg transition inline-flex items-center gap-1.5"
+              <DataTable>
+                <thead className="bg-slate-100 border-b border-slate-200">
+                  <tr>
+                    <th className={tableHeadClass}>Rx #</th>
+                    <th className={tableHeadClass} onClick={() => toggleSort('patient')}>
+                      Patient <SortIcon f="patient" />
+                    </th>
+                    <th className={tableHeadClass}>Diagnosis</th>
+                    <th className={tableHeadClass} onClick={() => toggleSort('drugs')}>
+                      Drugs <SortIcon f="drugs" />
+                    </th>
+                    <th className={tableHeadClass} onClick={() => toggleSort('date')}>
+                      Date <SortIcon f="date" />
+                    </th>
+                    <th className={`${tableHeadClass} text-center`}>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {list.map(rx => {
+                    const { label, bg, text } = badge(rx.status);
+                    const isToday = rx.createdAt?.startsWith(todayStr);
+                    return (
+                      <tr key={rx.prescriptionId} className={`${tableRowClass} ${isToday ? 'bg-amber-50/10' : ''}`} onClick={() => setSelected(rx)}>
+                        <td className={`${tableCellClass} text-slate-500 font-mono text-sm`}>#{rx.prescriptionId}</td>
+                        <td className={tableCellClass}>
+                          <div>
+                            <button 
+                              onClick={(e) => { 
+                                e.stopPropagation(); 
+                                setSelectedPatientId(String(rx.patientId)); 
+                                setSelectedPatientName(rx.patientName); 
+                              }}
+                              className="font-semibold text-slate-800 hover:text-blue-600 hover:underline text-left flex items-center gap-1 text-sm"
                             >
-                              <FileText size={14} /> View Rx
+                              {rx.patientName} <FileText size={12} className="text-slate-400" />
                             </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                            <p className="text-xs text-slate-500 font-medium mt-0.5">{formatPatientId(rx.patientId)}</p>
+                          </div>
+                        </td>
+                        <td className={tableCellClass}>
+                          <p className="text-sm font-medium text-emerald-700 max-w-[160px] truncate">{rx.diagnosis}</p>
+                        </td>
+                        <td className={tableCellClass}>
+                          <div className="flex flex-wrap gap-1">
+                            {(rx.medications || []).slice(0, 2).map((m, i) => (
+                              <span key={i} className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">{m.medicineName}</span>
+                            ))}
+                            {(rx.medications?.length || 0) > 2 && (
+                              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-bold">+{(rx.medications.length - 2)}</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className={`${tableCellClass} text-sm text-slate-600`}>
+                          {rx.createdAt ? new Date(rx.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                          {isToday && <span className="ml-2 text-[10px] bg-amber-100 text-amber-700 font-bold px-1.5 py-0.5 rounded">TODAY</span>}
+                        </td>
+                        <td className={`${tableCellClass} text-center`}>
+                          <button
+                            onClick={e => { e.stopPropagation(); setSelected(rx); }}
+                            className="bg-blue-50 hover:bg-blue-100 text-blue-600 text-xs font-semibold px-4 py-2 rounded-lg transition inline-flex items-center gap-1.5"
+                          >
+                            <FileText size={14} /> View Rx
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </DataTable>
             )}
           </div>
           <p className="text-xs text-slate-400 text-right">Showing {list.length} of {prescriptions.length} prescriptions</p>

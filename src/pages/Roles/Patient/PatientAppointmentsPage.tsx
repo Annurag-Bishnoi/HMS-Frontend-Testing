@@ -3,6 +3,8 @@ import { Calendar, Clock, CheckCircle, XCircle, RefreshCw, Search, Filter, Steth
 import { getUser } from '../../../utils/token';
 import { getPatientByUserId } from '../../../api/patientService';
 import { getAppointments } from '../../../api/appointmentService';
+import DataTable, { tableHeadClass, tableRowClass, tableCellClass } from '../../../components/common/DataTable';
+
 
 const STATUS: Record<string, { label: string; bg: string; text: string; dot: string }> = {
   SCHEDULED:        { label: 'Scheduled',       bg: 'bg-blue-50',    text: 'text-blue-700',    dot: 'bg-blue-400'    },
@@ -113,14 +115,14 @@ export default function PatientAppointmentsPage() {
             <p className="font-medium">No appointments found.</p>
           </div>
         ) : (
-          <table className="min-w-full">
+          <DataTable>
             <thead className="bg-slate-100 border-b border-slate-200">
               <tr>
-                <th className="px-6 py-4 text-left font-semibold text-slate-700">Date & Time</th>
-                <th className="px-6 py-4 text-left font-semibold text-slate-700">Doctor</th>
-                <th className="px-6 py-4 text-left font-semibold text-slate-700">Type</th>
-                <th className="px-6 py-4 text-left font-semibold text-slate-700">Reason</th>
-                <th className="px-6 py-4 text-left font-semibold text-slate-700">Status</th>
+                <th className={tableHeadClass}>Date & Time</th>
+                <th className={tableHeadClass}>Doctor</th>
+                <th className={tableHeadClass}>Type</th>
+                <th className={tableHeadClass}>Reason</th>
+                <th className={tableHeadClass}>Status</th>
               </tr>
             </thead>
             <tbody>
@@ -129,22 +131,22 @@ export default function PatientAppointmentsPage() {
                 const isToday = a.appointmentDate === todayStr;
                 return (
                   <tr key={a.id} className={`border-b border-slate-50 hover:bg-slate-50 transition-colors ${isToday ? 'bg-teal-50/30' : ''}`}>
-                    <td className="px-6 py-4">
+                    <td className={tableCellClass}>
                       <p className="font-semibold text-slate-800">
                         {a.appointmentDate ? new Date(a.appointmentDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                         {isToday && <span className="ml-2 text-[10px] bg-teal-100 text-teal-700 font-bold px-1.5 rounded">TODAY</span>}
                       </p>
                       <p className="text-xs text-slate-400 mt-0.5">{a.appointmentTime || '—'}</p>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className={tableCellClass}>
                       <div>
                         <p className="font-semibold text-slate-800">{a.doctorName || '—'}</p>
                         <p className="text-xs text-slate-400">{a.department || ''}</p>
                       </div>
                     </td>
-                    <td className="px-6 py-4"><span className="text-xs bg-slate-100 text-slate-600 font-semibold px-2 py-1 rounded">{a.consultationType || 'OPD'}</span></td>
+                    <td className={tableCellClass}><span className="text-xs bg-slate-100 text-slate-600 font-semibold px-2 py-1 rounded">{a.consultationType || 'OPD'}</span></td>
                     <td className="px-6 py-4 text-slate-600 max-w-[150px] truncate">{a.reasonForVisit || '—'}</td>
-                    <td className="px-6 py-4">
+                    <td className={tableCellClass}>
                       <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${cfg.bg} ${cfg.text}`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />{cfg.label}
                       </span>
@@ -153,7 +155,7 @@ export default function PatientAppointmentsPage() {
                 );
               })}
             </tbody>
-          </table>
+          </DataTable>
         )}
       </div>
       <p className="text-xs text-slate-400 text-right">Showing {filtered.length} of {appointments.length} appointments</p>
