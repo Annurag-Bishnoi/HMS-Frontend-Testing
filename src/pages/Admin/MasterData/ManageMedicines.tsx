@@ -1,0 +1,107 @@
+import { useState, useEffect } from "react";
+import { Search, Plus } from "lucide-react";
+import { pharmacyService } from "../../../api/pharmacyService";
+import { tableHeadClass, tableHeadActionsClass, tableRowClass, tableCellClass } from "../../../components/common/DataTable";
+import { TableEmptyRow } from "../../../components/common/DataTable";
+import TableStatusBadge from "../../../components/common/TableStatusBadge";
+import { TableEditButton, TableDeleteButton, TableActionCell } from "../../../components/common/TableActions";
+
+export default function ManageMedicines() {
+  const [search, setSearch] = useState("");
+  const [medicines, setMedicines] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchMedicines();
+  }, []);
+
+  const fetchMedicines = async () => {
+    try {
+      setLoading(true);
+      const data = await pharmacyService.getAllInventory();
+      setMedicines(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Failed to fetch medicines", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredMedicines = medicines.filter(med => 
+    med.medicineName?.toLowerCase().includes(search.toLowerCase()) || 
+    med.cielConceptId?.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div className="space-y-6 animate-fade-in pb-12">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-800">Medicine Directory</h1>
+          <p className="text-slate-500 mt-1">Master list of all hospital-approved medications.</p>
+        </div>
+        <button className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 font-semibold text-white hover:bg-blue-700 transition shadow-sm">
+          <Plus size={20} /> Add Medicine
+        </button>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <input
+              type="text"
+              placeholder="Search by name or code..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
+            />
+          </div>
+          <div className="text-sm text-slate-500 font-medium">
+            Total: {filteredMedicines.length}
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="min-w-full">
+            <thead className="bg-slate-100 border-b border-slate-200">
+              <tr>
+                <th className={tableHeadClass}>Code</th>
+                <th className={tableHeadClass}>Medicine Name</th>
+                <th className={tableHeadClass}>Stock</th>
+                <th className={tableHeadClass}>Reorder Level</th>
+                <th className={tableHeadClass}>Status</th>
+                <th className={tableHeadActionsClass}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="py-10 text-center text-slate-500">Loading medicines...</td>
+                </tr>
+              ) : filteredMedicines.length === 0 ? (
+                <TableEmptyRow colSpan={6} message="No medicines found." />
+              ) : filteredMedicines.map((med) => (
+                <tr key={med.inventoryItemId} className={tableRowClass}>
+                  <td className={`${tableCellClass} font-semibold`}>{med.cielConceptId}</td>
+                  <td className={tableCellClass}>{med.medicineName}</td>
+                  <td className={tableCellClass}>{med.totalStock} units</td>
+                  <td className={tableCellClass}>{med.reorderLevel}</td>
+                  <td className={tableCellClass}>
+                    <TableStatusBadge
+                      status={med.active !== false ? "Active" : "Inactive"}
+                      variant={med.active !== false ? "green" : "red"}
+                    />
+                  </td>
+                  <TableActionCell>
+                    <TableEditButton onClick={() => {}} title="Edit" />
+                    <TableDeleteButton onClick={() => {}} title="Delete" />
+                  </TableActionCell>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,43 @@
+import type { Appointment } from "../types/appointment";
+
+export const mockAppointments: Appointment[] = [
+  {
+    id: "APT001",
+    patientId: "PAT001",
+    patientName: "Rahul Sharma",
+    doctorId: "DOC001",
+    doctorName: "Dr. Amit Verma",
+    department: "Cardiology",
+    appointmentDate: "2026-07-28",
+    appointmentTime: "10:30 AM",
+    consultationType: "OPD",
+    status: "Scheduled",
+    notes: "Routine check-up",
+  },
+  {
+    id: "APT002",
+    patientId: "PAT002",
+    patientName: "Priya Singh",
+    doctorId: "DOC002",
+    doctorName: "Dr. Neha Gupta",
+    department: "Dermatology",
+    appointmentDate: "2026-07-28",
+    appointmentTime: "12:00 PM",
+    consultationType: "Follow-up",
+    status: "Completed",
+    notes: "Skin allergy review",
+  },
+  {
+    id: "APT003",
+    patientId: "PAT003",
+    patientName: "Aman Patel",
+    doctorId: "DOC003",
+    doctorName: "Dr. Rakesh Kumar",
+    department: "Orthopedics",
+    appointmentDate: "2026-07-29",
+    appointmentTime: "09:15 AM",
+    consultationType: "Emergency",
+    status: "Cancelled",
+    notes: "Patient unavailable",
+  },
+];
