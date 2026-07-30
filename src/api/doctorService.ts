@@ -14,7 +14,7 @@ export const getDoctors = async (): Promise<Doctor[]> => {
     qualifications: d.qualifications || "",
     consultationFee: d.consultationFee || 0,
     experience: d.experience || 0,
-    status: d.active ? "Available" : "On Leave"
+    status: d.active ? "Active" : "Inactive"
   }));
 };
 
@@ -31,7 +31,7 @@ export const getDoctorById = async (id: string): Promise<Doctor> => {
     qualifications: d.qualifications || "",
     consultationFee: d.consultationFee || 0,
     experience: d.experience || 0,
-    status: d.active ? "Available" : "On Leave"
+    status: d.active ? "Active" : "Inactive"
   };
 };
 
@@ -48,7 +48,7 @@ export const getDoctorByUserId = async (userId: string): Promise<Doctor> => {
     qualifications: d.qualifications || "",
     consultationFee: d.consultationFee || 0,
     experience: d.experience || 0,
-    status: d.active ? "Available" : "On Leave"
+    status: d.active ? "Active" : "Inactive"
   };
 };
 
@@ -81,10 +81,14 @@ export const updateDoctor = async (id: string, doctor: Partial<Doctor>): Promise
   const response = await api.put(`/doctors/${id}`, payload);
   
   if (doctor.status) {
-    await api.patch(`/doctors/${id}/status`, { active: doctor.status === "Available" });
+    await api.patch(`/doctors/${id}/status`, { active: doctor.status === "Active" });
   }
 
   return response.data;
+};
+
+export const updateDoctorStatus = async (id: string, status: string): Promise<void> => {
+  await api.patch(`/doctors/${id}/status`, { active: status === "Active" });
 };
 
 export const deleteDoctor = async (id: string): Promise<void> => {

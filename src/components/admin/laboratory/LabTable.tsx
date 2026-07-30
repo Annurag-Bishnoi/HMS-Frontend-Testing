@@ -68,14 +68,14 @@ export default function LabTable({
                 <TableActionCell>
                   <TableViewButton onClick={() => onView(staff)} title="View Details & Reset Password" />
                   <TableEditButton onClick={() => onEdit(staff)} title="Edit Staff Details" />
-                  <TableCustomActionButton
-                    onClick={() => onToggleStatus(staff)}
-                    disabled={isLoading}
-                    title={staff.active ? "Deactivate Staff" : "Activate Staff"}
-                    icon={Power}
-                    variant={staff.active ? "slate" : "emerald"}
-                  />
-                </TableActionCell>
+                    <TableCustomActionButton
+                      onClick={() => onToggleStatus(staff)}
+                      disabled={isLoading}
+                      title={staff.active ? "Deactivate Staff" : "Activate Staff"}
+                      icon={Power}
+                      variant={staff.active ? "slate" : "emerald"}
+                    />
+                  </TableActionCell>
               </tr>
             );
           })

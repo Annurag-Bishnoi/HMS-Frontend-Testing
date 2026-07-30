@@ -119,25 +119,27 @@ export default function AddLabStaff() {
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Email Address</label>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Email Address *</label>
               <input
                 type="email"
                 name="email"
+                required
                 value={staff.email}
                 onChange={handleChange}
                 className="w-full rounded-lg border p-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder="Enter email (optional)"
+                placeholder="Enter email"
               />
             </div>
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Phone Number</label>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Phone Number *</label>
               <input
                 type="tel"
                 name="phone"
+                required
                 value={staff.phone}
                 onChange={handleChange}
                 className="w-full rounded-lg border p-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder="Enter phone number (optional)"
+                placeholder="Enter phone number"
               />
             </div>
           </div>

@@ -58,6 +58,11 @@ export const resetUserPassword = async (userId: number, newPassword: string): Pr
   return res.data;
 };
 
+export const resetUserCredentials = async (userId: number): Promise<any> => {
+  const res = await api.post(`/admin/users/${userId}/reset-credentials`);
+  return res.data;
+};
+
 export const getAdminSummary = async (): Promise<any> => {
   const res = await api.get("/admin/dashboard/summary");
   return res.data;

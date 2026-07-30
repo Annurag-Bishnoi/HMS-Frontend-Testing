@@ -14,7 +14,11 @@ import {
   Stethoscope,
   FileText,
   BedDouble,
-  Activity
+  Activity,
+  Building,
+  TestTube,
+  ActivitySquare,
+  Bed
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
@@ -24,11 +28,11 @@ const adminMenu = [
   { title: "Dashboard", icon: LayoutDashboard, path: "/admin/dashboard" },
   { title: "Patients", icon: Users, path: "/admin/patients" },
   { title: "Doctors", icon: UserCog, path: "/admin/doctors" },
+  { title: "Receptionists", icon: Users, path: "/admin/receptionists" },
+  { title: "Lab Staff", icon: TestTube, path: "/admin/laboratory" },
+  { title: "Pharmacists", icon: Pill, path: "/admin/pharmacy" },
   { title: "Appointments", icon: CalendarDays, path: "/admin/appointments" },
   { title: "Billing", icon: CreditCard, path: "/admin/billing" },
-  { title: "Pharmacy", icon: Pill, path: "/admin/pharmacy" },
-  { title: "Laboratory", icon: FlaskConical, path: "/admin/laboratory" },
-  { title: "Analytics", icon: BarChart3, path: "/admin/analytics" },
   { title: "Settings", icon: Settings, path: "/admin/settings" },
 ];
 
@@ -118,7 +122,7 @@ export default function Sidebar() {
 
         <div>
           <h2 className="text-xl font-bold text-slate-800">
-            MediCare HMS
+            Mediora HMS
           </h2>
           <p className="text-xs text-slate-500 capitalize">
             {user?.role?.toLowerCase() || "Admin"} Panel

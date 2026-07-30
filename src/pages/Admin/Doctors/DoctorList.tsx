@@ -7,7 +7,7 @@ import DoctorToolbar from "../../../components/admin/doctors/DoctorToolbar";
 import DoctorTable from "../../../components/admin/doctors/DoctorTable";
 import DoctorDetailsModal from "../../../components/admin/doctors/DoctorDetailsModal";
 
-import { getDoctors, deleteDoctor } from "../../../api/doctorService";
+import { getDoctors, updateDoctorStatus } from "../../../api/doctorService";
 import type { Doctor } from "../../../types/doctor";
 
 export default function DoctorList() {
@@ -35,14 +35,13 @@ export default function DoctorList() {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm("Are you sure you want to delete this doctor?")) {
-      try {
-        await deleteDoctor(id.toString());
-        await fetchDoctors();
-      } catch (err: any) {
-        alert("Failed to delete");
-      }
+  const handleToggleStatus = async (doctor: Doctor) => {
+    try {
+      const newStatus = doctor.status === "Active" ? "Inactive" : "Active";
+      await updateDoctorStatus(doctor.id.toString(), newStatus);
+      await fetchDoctors();
+    } catch (err: any) {
+      alert("Failed to change status");
     }
   };
 
@@ -51,10 +50,17 @@ export default function DoctorList() {
   const [status, setStatus] = useState("All");
 
   const filteredDoctors = useMemo(() => {
-    return doctors.filter(doctor => {
-      const matchesSearch = doctor.name.toLowerCase().includes(search.toLowerCase());
-      const matchesDept = department === "All" || doctor.department === department;
-      const matchesStatus = status === "All" || doctor.status === status;
+    return (doctors || []).filter(doctor => {
+      if (!doctor) return false;
+      const searchName = doctor.name || "";
+      const matchesSearch = searchName.toLowerCase().includes(search.toLowerCase());
+      
+      const docDept = doctor.department || "General";
+      const matchesDept = department === "All" || docDept === department;
+      
+      const docStatus = doctor.status || "Inactive";
+      const matchesStatus = status === "All" || docStatus === status;
+      
       return matchesSearch && matchesDept && matchesStatus;
     });
   }, [doctors, search, department, status]);
@@ -78,7 +84,7 @@ export default function DoctorList() {
           setIsModalOpen(true);
         }}
         onEdit={(doc) => navigate(`/admin/doctors/${doc.id}/edit`)}
-        onDelete={(doc) => handleDelete(doc.id)}
+        onToggleStatus={handleToggleStatus}
       />
 
       <DoctorDetailsModal 

@@ -63,9 +63,9 @@ export default function InvoiceModal({ isOpen, onClose, bill, onProcessPayment, 
           {/* Hospital Header */}
           <div className="flex justify-between items-start border-b border-slate-200 pb-6 mb-6">
             <div>
-              <h1 className="text-2xl font-black text-indigo-700 tracking-tight">CARE<span className="text-slate-800">PLUS</span> Hospital</h1>
+              <h1 className="text-2xl font-black text-indigo-700 tracking-tight">MEDIORA<span className="text-slate-800"> HOSPITAL</span></h1>
               <p className="text-sm text-slate-500 mt-1">123 Health Avenue, Medical District</p>
-              <p className="text-sm text-slate-500">contact@careplus.com | +1 234 567 8900</p>
+              <p className="text-sm text-slate-500">contact@mediora.com | +1 234 567 8900</p>
             </div>
             <div className="text-right">
               <h2 className="text-3xl font-light text-slate-300 uppercase tracking-widest mb-2">Invoice</h2>
@@ -192,7 +192,7 @@ export default function InvoiceModal({ isOpen, onClose, bill, onProcessPayment, 
           
           {/* Print Footer */}
           <div className="mt-16 text-center text-xs text-slate-400 hidden print:block">
-            <p>Thank you for choosing CarePlus Hospital.</p>
+            <p>Thank you for choosing Mediora Hospital.</p>
             <p>This is a computer generated invoice and does not require a physical signature.</p>
           </div>
         </div>

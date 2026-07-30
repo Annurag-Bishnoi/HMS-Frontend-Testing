@@ -1,8 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import { getUser } from "../../../utils/token";
 import TableStatusBadge from "../../common/TableStatusBadge";
-import { TableViewButton, TableEditButton, TableDeleteButton, TableActionCell } from "../../common/TableActions";
+import { TableViewButton, TableEditButton, TableCustomActionButton, TableActionCell } from "../../common/TableActions";
 import { tableRowClass, tableCellClass } from "../../common/DataTable";
+import { Power } from "lucide-react";
 
 interface Patient {
   id?: number;
@@ -18,10 +19,10 @@ interface Patient {
 interface Props {
   patient: Patient;
   onView: (patient: Patient) => void;
-  onDelete: (id: number) => void;
+  onToggleStatus: (patient: Patient) => void;
 }
 
-export default function PatientRow({ patient, onView, onDelete }: Props) {
+export default function PatientRow({ patient, onView, onToggleStatus }: Props) {
   const navigate = useNavigate();
   const user = getUser();
   const basePath = user?.role === "RECEPTIONIST" ? "/receptionist" : "/admin";
@@ -45,13 +46,11 @@ export default function PatientRow({ patient, onView, onDelete }: Props) {
           title="Edit"
         />
         {isAdmin && (
-          <TableDeleteButton
-            onClick={() => {
-              if (window.confirm("Are you sure you want to delete this patient?")) {
-                if (patient.id) onDelete(patient.id);
-              }
-            }}
-            title="Delete"
+          <TableCustomActionButton
+            icon={Power}
+            onClick={() => onToggleStatus(patient)}
+            title={patient.status === "Admitted" ? "Discharge Patient" : "Admit Patient"}
+            variant={patient.status === "Admitted" ? "amber" : "emerald"}
           />
         )}
       </TableActionCell>

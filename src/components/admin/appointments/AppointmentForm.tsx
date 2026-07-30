@@ -53,15 +53,19 @@ export default function AppointmentForm({ initialData, patients, doctors, onSubm
   };
 
   // Convert patients and doctors to react-select options
-  const patientOptions = patients.map((p) => ({
-    value: p.id,
-    label: `${p.name} (${p.registrationNo})`,
-  }));
+  const patientOptions = patients
+    .filter(p => p.status !== "Discharged" && p.status !== "Inactive" && p.active !== false)
+    .map((p) => ({
+      value: p.id,
+      label: `${p.name} (${p.registrationNo})`,
+    }));
 
-  const doctorOptions = doctors.map((d) => ({
-    value: d.id,
-    label: `${d.name} (${d.department})`,
-  }));
+  const doctorOptions = doctors
+    .filter(d => d && d.status === "Active" && d.name && d.name.trim() !== "")
+    .map((d) => ({
+      value: d.id,
+      label: `${d.name} (${d.department})`,
+    }));
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8 rounded-3xl bg-white p-8 shadow-sm border border-slate-100 animate-fade-in">

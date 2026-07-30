@@ -1,16 +1,20 @@
 import { useState, useEffect } from "react";
-import { Search, Plus, Lock, Unlock, Power } from "lucide-react";
-import { getAllUsers, updateUserStatus, lockUser } from "../../../api/adminService";
+import { useNavigate } from "react-router-dom";
+import { Search, Plus, Power } from "lucide-react";
+import { getAllUsers, updateUserStatus } from "../../../api/adminService";
 import { tableHeadClass, tableHeadActionsClass, tableRowClass, tableCellClass } from "../../../components/common/DataTable";
 import { TableEmptyRow } from "../../../components/common/DataTable";
 import TableStatusBadge from "../../../components/common/TableStatusBadge";
-import { TableCustomActionButton, TableActionCell } from "../../../components/common/TableActions";
+import { TableCustomActionButton, TableActionCell, TableViewButton, TableEditButton } from "../../../components/common/TableActions";
+import ReceptionistDetailsModal from "../../../components/admin/receptionists/ReceptionistDetailsModal";
 
 export default function AdminReceptionistPage() {
   const [receptionists, setReceptionists] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [actionLoading, setActionLoading] = useState<number | null>(null);
+  const [selectedStaff, setSelectedStaff] = useState<any | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchData();
@@ -44,18 +48,6 @@ export default function AdminReceptionistPage() {
     }
   };
 
-  const handleToggleLock = async (staff: any) => {
-    setActionLoading(staff.userId);
-    try {
-      await lockUser(staff.userId, !staff.accountLocked);
-      setReceptionists(prev => prev.map(s => s.userId === staff.userId ? { ...s, accountLocked: !staff.accountLocked } : s));
-    } catch (err) {
-      alert("Failed to update lock status");
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
   const filteredStaff = receptionists.filter(staff =>
     staff.fullName?.toLowerCase().includes(search.toLowerCase()) ||
     staff.username?.toLowerCase().includes(search.toLowerCase())
@@ -68,7 +60,10 @@ export default function AdminReceptionistPage() {
           <h1 className="text-3xl font-bold text-slate-800">Manage Receptionists</h1>
           <p className="text-slate-500 mt-1">View and manage all front-desk reception staff.</p>
         </div>
-        <button className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 font-semibold text-white hover:bg-blue-700 transition shadow-sm">
+        <button 
+          onClick={() => navigate('/admin/receptionists/add')}
+          className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 font-semibold text-white hover:bg-blue-700 transition shadow-sm"
+        >
           <Plus size={20} /> Add Receptionist
         </button>
       </div>
@@ -124,25 +119,17 @@ export default function AdminReceptionistPage() {
                           status={staff.active ? "Active" : "Inactive"}
                           variant={staff.active ? "green" : "red"}
                         />
-                        {staff.accountLocked && (
-                          <TableStatusBadge status="Locked" variant="red" />
-                        )}
                       </div>
                     </td>
                     <TableActionCell>
+                      <TableViewButton onClick={() => setSelectedStaff(staff)} title="View Details" />
+                      <TableEditButton onClick={() => navigate(`/admin/receptionists/edit/${staff.userId}`)} title="Edit Details" />
                       <TableCustomActionButton
                         onClick={() => handleToggleStatus(staff)}
                         disabled={actionLoading === staff.userId}
                         title={staff.active ? "Deactivate" : "Activate"}
                         icon={Power}
                         variant={staff.active ? "slate" : "emerald"}
-                      />
-                      <TableCustomActionButton
-                        onClick={() => handleToggleLock(staff)}
-                        disabled={actionLoading === staff.userId}
-                        title={staff.accountLocked ? "Unlock Account" : "Lock Account"}
-                        icon={staff.accountLocked ? Unlock : Lock}
-                        variant={staff.accountLocked ? "emerald" : "delete"}
                       />
                     </TableActionCell>
                   </tr>
@@ -152,6 +139,14 @@ export default function AdminReceptionistPage() {
           </table>
         </div>
       </div>
+
+      {selectedStaff && (
+        <ReceptionistDetailsModal
+          staff={selectedStaff}
+          onClose={() => setSelectedStaff(null)}
+          onUpdate={fetchData}
+        />
+      )}
     </div>
   );
 }

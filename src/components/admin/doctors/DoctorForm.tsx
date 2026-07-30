@@ -66,12 +66,16 @@ export default function DoctorForm({
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
+    let val = e.target.value;
+    if (e.target.name === "phone") {
+      val = val.replace(/\D/g, "").slice(0, 10);
+    }
     setDoctor({
       ...doctor,
       [e.target.name]:
-        e.target.name === "experience"
-          ? Number(e.target.value)
-          : e.target.value,
+        e.target.name === "experience" || e.target.name === "consultationFee"
+          ? Number(val)
+          : val,
     });
   };
 
@@ -166,10 +170,13 @@ export default function DoctorForm({
               </div>
               <input
                 required
+                type="tel"
+                pattern="[0-9]{10}"
+                title="10-digit mobile number"
                 name="phone"
                 value={doctor.phone}
                 onChange={handleChange}
-                placeholder="+1 (555) 000-0000"
+                placeholder="10-digit mobile number"
                 className="w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>

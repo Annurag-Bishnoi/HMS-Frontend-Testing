@@ -49,7 +49,7 @@ const PendingPrescriptionsTable: React.FC<PendingPrescriptionsTableProps> = ({
                   className="inline-flex items-center gap-2 rounded-lg bg-sky-100 px-3 py-2 text-sm font-semibold text-sky-700 hover:bg-sky-200 transition-colors"
                 >
                   <Stethoscope size={16} />
-                  Dispense
+                  {prescription.status === "DISPENSED" ? "View Bill" : "Dispense"}
                 </button>
               </TableActionCell>
             </tr>

@@ -6,6 +6,7 @@ import {
   getAllLabTests, startLabTest, submitLabResult, cancelLabTest
 } from '../../../api/labService';
 import { ResultModal, TestDetailModal } from '../LaboratoryDashboard';
+import DocumentViewerModal from '../../../components/common/DocumentViewerModal';
 import DataTable, { tableHeadClass, tableRowClass, tableCellClass } from '../../../components/common/DataTable';
 
 
@@ -24,6 +25,7 @@ export default function LabRequestsPage() {
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [resultModal, setResultModal] = useState<any>(null);
   const [detailModal, setDetailModal] = useState<any>(null);
+  const [docUrl, setDocUrl] = useState<string | null>(null);
 
   useEffect(() => { init(); }, []);
 
@@ -189,6 +191,13 @@ export default function LabRequestsPage() {
                             View
                           </button>
 
+                          {t.documentUrl && (
+                            <button onClick={() => setDocUrl(t.documentUrl)}
+                               className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-white transition text-xs font-semibold flex items-center gap-1">
+                              <FileText size={12} /> View Doc
+                            </button>
+                          )}
+
                           {t.status === 'PENDING' && (
                             <button
                               onClick={() => handleStart(t.testId)}
@@ -241,6 +250,7 @@ export default function LabRequestsPage() {
         />
       )}
       {detailModal && <TestDetailModal test={detailModal} onClose={() => setDetailModal(null)} />}
+      {docUrl && <DocumentViewerModal url={docUrl} onClose={() => setDocUrl(null)} />}
     </div>
   );
 }

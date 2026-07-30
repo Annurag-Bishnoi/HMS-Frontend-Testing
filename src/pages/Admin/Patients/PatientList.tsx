@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import PatientStats from "../../../components/admin/patients/PatientStats";
+import Topbar from "../../../components/dashboard/Topbar";
 import PatientToolbar from "../../../components/admin/patients/PatientToolbar";
 import PatientTable from "../../../components/admin/patients/PatientTable";
 
@@ -15,7 +15,9 @@ const [status, setStatus] = useState("All");
   return (
     <div className="space-y-6">
 
-      <PatientStats />
+      <div className="mb-4">
+        <h1 className="text-3xl font-bold text-slate-800">Patient Directory</h1>
+      </div>
 
       <PatientToolbar
     search={search}

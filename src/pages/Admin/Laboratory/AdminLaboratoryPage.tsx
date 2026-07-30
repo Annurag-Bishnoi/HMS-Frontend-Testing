@@ -10,7 +10,7 @@ import LabStaffDetailsModal from "../../../components/admin/laboratory/LabStaffD
 import { FlaskConical, Users } from "lucide-react";
 import { getAllLabTests } from "../../../api/labService";
 
-import { getAllUsers, updateUserStatus, lockUser } from "../../../api/adminService";
+import { getAllUsers, updateUserStatus, lockUser, resetUserCredentials } from "../../../api/adminService";
 
 export default function AdminLaboratoryPage() {
   const navigate = useNavigate();
@@ -97,6 +97,19 @@ export default function AdminLaboratoryPage() {
     }
   };
 
+  const handleResetCredentials = async (staff: any) => {
+    if (!window.confirm(`Are you sure you want to reset credentials for ${staff.fullName}?`)) return;
+    setActionLoading(staff.userId);
+    try {
+      const response = await resetUserCredentials(staff.userId);
+      alert(`Credentials reset successfully!\n\nUsername: ${response.username}\nNew Password: ${response.temporaryPassword}`);
+    } catch (err) {
+      alert("Failed to reset credentials");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const filteredStaff = labStaff.filter((staff) => {
     const matchesSearch =
       staff.fullName?.toLowerCase().includes(search.toLowerCase()) ||
@@ -166,6 +179,7 @@ export default function AdminLaboratoryPage() {
               onEdit={handleEdit}
               onDelete={handleDelete}
               onToggleStatus={handleToggleStatus}
+              onResetCredentials={handleResetCredentials}
               actionLoading={actionLoading}
             />
           </>

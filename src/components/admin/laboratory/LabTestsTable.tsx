@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { X } from "lucide-react";
+import { X, FileText } from "lucide-react";
+import DocumentViewerModal from "../../common/DocumentViewerModal";
 import DataTable, { TableEmptyRow } from "../../common/DataTable";
 import { tableHeadClass, tableHeadActionsClass, tableRowClass, tableCellClass } from "../../common/DataTable";
 import TableStatusBadge from "../../common/TableStatusBadge";
@@ -11,6 +12,7 @@ interface LabTestsTableProps {
 
 export default function LabTestsTable({ labTests }: LabTestsTableProps) {
   const [selectedResult, setSelectedResult] = useState<any | null>(null);
+  const [docUrl, setDocUrl] = useState<string | null>(null);
 
   return (
     <>
@@ -96,6 +98,15 @@ export default function LabTestsTable({ labTests }: LabTestsTableProps) {
                   </div>
                 )}
 
+                {selectedResult.documentUrl && (
+                  <div className="pt-2">
+                    <button onClick={() => setDocUrl(selectedResult.documentUrl)}
+                       className="inline-flex w-full items-center justify-center gap-2 bg-slate-800 text-white px-4 py-3 rounded-xl text-sm font-bold hover:bg-slate-700 transition">
+                      <FileText size={18} /> View Attached Document
+                    </button>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-2 gap-4 pt-2">
                   <div>
                     <p className="text-xs text-slate-500">Patient</p>
@@ -122,6 +133,7 @@ export default function LabTestsTable({ labTests }: LabTestsTableProps) {
           </div>
         </div>
       )}
+      {docUrl && <DocumentViewerModal url={docUrl} onClose={() => setDocUrl(null)} />}
     </>
   );
 }

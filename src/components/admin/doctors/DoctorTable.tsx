@@ -7,14 +7,14 @@ type DoctorTableProps = {
   doctors: Doctor[];
   onView: (doc: Doctor) => void;
   onEdit: (doc: Doctor) => void;
-  onDelete: (doc: Doctor) => void;
+  onToggleStatus: (doc: Doctor) => void;
 };
 
 export default function DoctorTable({
   doctors,
   onView,
   onEdit,
-  onDelete,
+  onToggleStatus,
 }: DoctorTableProps) {
   return (
     <DataTable>
@@ -36,7 +36,7 @@ export default function DoctorTable({
               doctor={doctor}
               onView={onView}
               onEdit={onEdit}
-              onDelete={onDelete}
+              onToggleStatus={onToggleStatus}
             />
           ))
         ) : (

@@ -9,16 +9,16 @@ interface DoctorStatsProps {
 export default function DoctorStats({ doctors }: DoctorStatsProps) {
 
   // ---------- Dynamic calculations ----------
-  const totalDoctors = doctors.length;
+  const totalDoctors = doctors?.length || 0;
 
   // Count doctors whose status is exactly "Available"
-  const availableToday = doctors.filter((d) => d.status === "Available").length;
+  const availableToday = (doctors || []).filter((d) => d?.status === "Available").length;
 
   // Count doctors whose status is exactly "On Leave"
-  const onLeave = doctors.filter((d) => d.status === "On Leave").length;
+  const onLeave = (doctors || []).filter((d) => d?.status === "On Leave").length;
 
   // Count distinct department names
-  const departments = new Set(doctors.map((d) => d.department)).size;
+  const departments = new Set((doctors || []).filter(d => d?.department).map((d) => d.department)).size;
 
   // Build the stats array using the computed values
   const stats = [

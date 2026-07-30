@@ -53,8 +53,10 @@ export default function AppointmentRow({
             />
           )}
         <TableViewButton onClick={() => onView(appointment)} title="View" />
-        <TableEditButton onClick={() => onEdit(appointment)} title="Edit" />
-        {isAdmin && (
+        {status !== "COMPLETED" && status !== "CANCELLED" && (
+          <TableEditButton onClick={() => onEdit(appointment)} title="Edit" />
+        )}
+        {isAdmin && status !== "COMPLETED" && status !== "CANCELLED" && (
           <TableDeleteButton onClick={() => onDelete(appointment)} title="Delete" />
         )}
       </TableActionCell>

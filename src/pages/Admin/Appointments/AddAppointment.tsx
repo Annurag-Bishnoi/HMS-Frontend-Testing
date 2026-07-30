@@ -38,7 +38,7 @@ export default function AddAppointment() {
       try {
         const [pData, dData] = await Promise.all([getPatients(), getDoctors()]);
         setPatients(pData);
-        setDoctors(dData);
+        setDoctors(dData.filter((d: Doctor) => d && d.status === "Active"));
       } catch (err) {
         console.error("Failed to load dependencies", err);
       } finally {

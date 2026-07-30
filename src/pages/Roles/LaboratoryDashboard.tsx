@@ -62,10 +62,13 @@ export function TestDetailModal({ test, onClose }: { test: any; onClose: () => v
               Ordered: {test.recordedAt ? new Date(test.recordedAt).toLocaleString('en-IN') : '?"'}
             </span>
           </div>
-          {test.resultValue ? (
+          {test.resultValue || test.documentUrl ? (
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
               <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Result</p>
-              <p className="font-bold text-slate-800 text-xl">{test.resultValue}</p>
+              
+              {test.resultValue && (
+                <p className="font-bold text-slate-800 text-xl">{test.resultValue}</p>
+              )}
               {test.remarks && <p className="text-sm text-slate-700 mt-2 italic">{test.remarks}</p>}
               
               {test.documentUrl && (

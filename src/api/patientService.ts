@@ -50,7 +50,20 @@ export const getPatients = async (): Promise<Patient[]> => {
 
 export const getPatientById = async (id: string): Promise<any> => {
   const response = await api.get(`/patients/${id}`);
-  return response.data;
+  const p = response.data;
+  return {
+    id: p.patientId,
+    registrationNo: p.patientCode || p.registrationNo || `P-100${p.patientId}`,
+    name: p.fullName || p.name,
+    age: p.age || 25,
+    gender: p.gender,
+    mobile: p.phone || p.mobile,
+    bloodGroup: p.bloodGroup || "Unknown",
+    address: p.address || "",
+    department: "General", 
+    doctor: "Not Assigned",
+    status: p.active ? "Admitted" : "Discharged"
+  };
 };
 
 export const getPatientByUserId = async (userId: string): Promise<any> => {

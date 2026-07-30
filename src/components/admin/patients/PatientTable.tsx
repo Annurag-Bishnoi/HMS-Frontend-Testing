@@ -4,7 +4,7 @@ import PatientDetailsModal from "./PatientDetailsModal";
 import Pagination from "./Pagination";
 import DataTable, { TableEmptyRow } from "../../common/DataTable";
 import { tableHeadClass, tableHeadActionsClass } from "../../common/DataTable";
-import { getPatients, deletePatient } from "../../../api/patientService";
+import { getPatients, updatePatientStatus } from "../../../api/patientService";
 import type { Patient } from "../../../api/patientService";
 
 interface Props {
@@ -38,12 +38,13 @@ export default function PatientTable({ search, status }: Omit<Props, 'department
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleToggleStatus = async (patient: Patient) => {
     try {
-      await deletePatient(id.toString());
+      const newStatus = patient.status === "Admitted" ? false : true;
+      await updatePatientStatus(patient.id!.toString(), newStatus);
       await fetchPatients();
     } catch (err: any) {
-      alert("Failed to delete patient: " + (err.response?.data?.message || err.message));
+      alert("Failed to change status: " + (err.response?.data?.message || err.message));
     }
   };
 
@@ -91,7 +92,7 @@ export default function PatientTable({ search, status }: Omit<Props, 'department
                 key={patient.id}
                 patient={patient as any}
                 onView={setSelectedPatient}
-                onDelete={handleDelete}
+                onToggleStatus={handleToggleStatus}
               />
             ))
           ) : (

@@ -71,6 +71,10 @@ export default function LoginForm() {
             navigate("/lab/dashboard");
             break;
 
+          case "BILLING":
+            navigate("/billing/dashboard");
+            break;
+
           default:
             navigate("/");
         }

@@ -41,12 +41,14 @@ export default function AppointmentDetails() {
           >
             Back to List
           </Link>
-          <Link
-            to={`/admin/appointments/${appointment.id}/edit`}
-            className="rounded-xl bg-blue-600 px-5 py-2.5 font-medium text-white shadow-md transition hover:bg-blue-700"
-          >
-            Edit Appointment
-          </Link>
+          {appointment.status !== 'COMPLETED' && appointment.status !== 'CANCELLED' && (
+            <Link
+              to={`/admin/appointments/${appointment.id}/edit`}
+              className="rounded-xl bg-blue-600 px-5 py-2.5 font-medium text-white shadow-md transition hover:bg-blue-700"
+            >
+              Edit Appointment
+            </Link>
+          )}
         </div>
       </div>
 

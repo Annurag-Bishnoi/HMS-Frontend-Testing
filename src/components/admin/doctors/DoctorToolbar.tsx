@@ -52,8 +52,8 @@ export default function DoctorToolbar({
         className="rounded-lg border px-3 py-2"
       >
         <option>All</option>
-        <option>Available</option>
-        <option>On Leave</option>
+        <option>Active</option>
+        <option>Inactive</option>
       </select>
 
     </div>

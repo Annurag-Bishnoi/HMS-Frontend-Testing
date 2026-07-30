@@ -72,7 +72,7 @@ const DispenseModal: React.FC<DispenseModalProps> = ({ isOpen, onClose, onSucces
               <Pill className="w-5 h-5" />
             </div>
             <h2 className="text-xl font-semibold text-slate-800">
-              Dispense Prescription #PRE-{prescription.prescriptionId}
+              {prescription.status === 'DISPENSED' ? 'Pharmacist Bill' : 'Dispense Prescription'} #PRE-{prescription.prescriptionId}
             </h2>
           </div>
           <button
@@ -135,13 +135,17 @@ const DispenseModal: React.FC<DispenseModalProps> = ({ isOpen, onClose, onSucces
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-600 text-center">{med.dosage}</td>
                         <td className="px-6 py-4 text-sm text-center font-semibold">
-                          <input 
-                            type="number" 
-                            min="0"
-                            value={qty} 
-                            onChange={(e) => handleQtyChange(med.medicationCode || '', e.target.value)}
-                            className="w-16 px-2 py-1 text-center border border-slate-300 rounded focus:ring-2 focus:ring-indigo-500 outline-none"
-                          />
+                          {prescription.status === 'DISPENSED' ? (
+                            <span className="text-slate-800">{qty}</span>
+                          ) : (
+                            <input 
+                              type="number" 
+                              min="0"
+                              value={qty} 
+                              onChange={(e) => handleQtyChange(med.medicationCode || '', e.target.value)}
+                              className="w-16 px-2 py-1 text-center border border-slate-300 rounded focus:ring-2 focus:ring-indigo-500 outline-none"
+                            />
+                          )}
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-600 text-right">₹{unitPrice.toFixed(2)}</td>
                         <td className="px-6 py-4 text-sm text-slate-800 text-right font-bold text-indigo-600">₹{total.toFixed(2)}</td>
@@ -169,28 +173,32 @@ const DispenseModal: React.FC<DispenseModalProps> = ({ isOpen, onClose, onSucces
 
         {/* Footer */}
         <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 items-center">
-          <span className="text-xs text-slate-500 mr-auto flex items-center gap-1">
-            <CheckCircle className="w-4 h-4 text-emerald-500" />
-            Stock will be deducted automatically
-          </span>
+          {prescription.status !== 'DISPENSED' && (
+            <span className="text-xs text-slate-500 mr-auto flex items-center gap-1">
+              <CheckCircle className="w-4 h-4 text-emerald-500" />
+              Stock will be deducted automatically
+            </span>
+          )}
           <button
             type="button"
             onClick={onClose}
             className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
           >
-            Cancel
+            {prescription.status === 'DISPENSED' ? 'Close' : 'Cancel'}
           </button>
-          <button
-            onClick={handleDispense}
-            disabled={loading}
-            className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-          >
-            {loading ? "Processing..." : (
-              <>
-                <CheckCircle className="w-4 h-4" /> Confirm & Dispense
-              </>
-            )}
-          </button>
+          {prescription.status !== 'DISPENSED' && (
+            <button
+              onClick={handleDispense}
+              disabled={loading}
+              className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {loading ? "Processing..." : (
+                <>
+                  <CheckCircle className="w-4 h-4" /> Confirm & Dispense
+                </>
+              )}
+            </button>
+          )}
         </div>
       </div>
     </div>

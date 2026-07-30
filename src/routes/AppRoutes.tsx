@@ -22,7 +22,7 @@ import AddAppointment from "../pages/Admin/Appointments/AddAppointment";
 import EditAppointment from "../pages/Admin/Appointments/EditAppointment";
 import AppointmentDetails from "../pages/Admin/Appointments/AppointmentDetails";
 
-// import PharmacyDashboard from "../pages/Admin/Pharmacy/PharmacyDashboard";
+import AdminPharmacyHub from "../pages/Admin/Pharmacy/AdminPharmacyHub";
 import AdminLaboratoryPage from "../pages/Admin/Laboratory/AdminLaboratoryPage";
 import AddLabStaff from "../pages/Admin/Laboratory/AddLabStaff";
 import EditLabStaff from "../pages/Admin/Laboratory/EditLabStaff";
@@ -31,6 +31,8 @@ import EditPharmacist from "../pages/Admin/Pharmacy/EditPharmacist";
 
 // Master Data & System Pages
 import AdminReceptionistPage from "../pages/Admin/Receptionists/AdminReceptionistPage";
+import AddReceptionist from "../pages/Admin/Receptionists/AddReceptionist";
+import EditReceptionist from "../pages/Admin/Receptionists/EditReceptionist";
 import ManageDepartments from "../pages/Admin/MasterData/ManageDepartments";
 import ManageMedicines from "../pages/Admin/MasterData/ManageMedicines";
 import ManageLabTests from "../pages/Admin/MasterData/ManageLabTests";
@@ -97,7 +99,7 @@ export default function AppRoutes() {
         <Route path="appointments/:id/edit" element={<EditAppointment />} />
 
         {/* Pharmacy Routes */}
-        <Route path="pharmacy" element={<PharmacistDashboard />} />
+        <Route path="pharmacy" element={<AdminPharmacyHub />} />
         <Route path="pharmacy/add" element={<AddPharmacist />} />
         <Route path="pharmacy/edit/:id" element={<EditPharmacist />} />
 
@@ -108,6 +110,8 @@ export default function AppRoutes() {
 
         {/* User Management Extensions */}
         <Route path="receptionists" element={<AdminReceptionistPage />} />
+        <Route path="receptionists/add" element={<AddReceptionist />} />
+        <Route path="receptionists/edit/:id" element={<EditReceptionist />} />
 
         {/* Master Data Routes */}
         <Route path="departments" element={<ManageDepartments />} />

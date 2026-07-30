@@ -18,6 +18,6 @@ export interface Doctor {
 
   experience: number;
 
-  status: "Available" | "On Leave";
+  status: "Active" | "Inactive";
 
 }
