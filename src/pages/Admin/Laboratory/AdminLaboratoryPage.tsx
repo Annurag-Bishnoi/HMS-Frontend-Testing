@@ -6,11 +6,13 @@ import LabStats from "../../../components/admin/laboratory/LabStats";
 import LabToolbar from "../../../components/admin/laboratory/LabToolbar";
 import LabTable from "../../../components/admin/laboratory/LabTable";
 import LabTestsTable from "../../../components/admin/laboratory/LabTestsTable";
+import Pagination from "../../../components/common/Pagination";
 import LabStaffDetailsModal from "../../../components/admin/laboratory/LabStaffDetailsModal";
 import { FlaskConical, Users } from "lucide-react";
 import { getAllLabTests } from "../../../api/labService";
 
 import { getAllUsers, updateUserStatus, lockUser, resetUserCredentials } from "../../../api/adminService";
+import { showToast, showConfirm } from "../../../utils/ui-alerts";
 
 export default function AdminLaboratoryPage() {
   const navigate = useNavigate();
@@ -57,13 +59,13 @@ export default function AdminLaboratoryPage() {
   };
 
   const handleDelete = async (staff: any) => {
-    if (!window.confirm(`Are you sure you want to deactivate ${staff.fullName}?`)) return;
+    if (!await showConfirm(`Are you sure you want to deactivate ${staff.fullName}?`)) return;
     try {
       setActionLoading(staff.userId);
       await updateUserStatus(staff.userId, false);
       fetchData();
     } catch (err) {
-      alert("Failed to deactivate staff");
+      showToast("Failed to deactivate staff", "error");
     } finally {
       setActionLoading(null);
     }
@@ -77,7 +79,7 @@ export default function AdminLaboratoryPage() {
         prev.map((s) => (s.userId === staff.userId ? { ...s, active: !staff.active } : s))
       );
     } catch (err) {
-      alert("Failed to update status");
+      showToast("Failed to update status", "error");
     } finally {
       setActionLoading(null);
     }
@@ -91,20 +93,20 @@ export default function AdminLaboratoryPage() {
         prev.map((s) => (s.userId === staff.userId ? { ...s, accountLocked: !staff.accountLocked } : s))
       );
     } catch (err) {
-      alert("Failed to update lock status");
+      showToast("Failed to update lock status", "error");
     } finally {
       setActionLoading(null);
     }
   };
 
   const handleResetCredentials = async (staff: any) => {
-    if (!window.confirm(`Are you sure you want to reset credentials for ${staff.fullName}?`)) return;
+    if (!await showConfirm(`Are you sure you want to reset credentials for ${staff.fullName}?`)) return;
     setActionLoading(staff.userId);
     try {
       const response = await resetUserCredentials(staff.userId);
-      alert(`Credentials reset successfully!\n\nUsername: ${response.username}\nNew Password: ${response.temporaryPassword}`);
+      showToast(`Credentials reset successfully!\n\nUsername: ${response.username}\nNew Password: ${response.temporaryPassword}`, "success");
     } catch (err) {
-      alert("Failed to reset credentials");
+      showToast("Failed to reset credentials", "error");
     } finally {
       setActionLoading(null);
     }
@@ -123,6 +125,15 @@ export default function AdminLaboratoryPage() {
 
     return matchesSearch && matchesStatus;
   });
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+  const totalPages = Math.ceil(filteredStaff.length / itemsPerPage);
+  const currentStaff = filteredStaff.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, status]);
 
   if (loading) {
     return <div className="p-6">Loading laboratory staff...</div>;
@@ -174,7 +185,7 @@ export default function AdminLaboratoryPage() {
               setStatus={setStatus}
             />
             <LabTable 
-              labStaff={filteredStaff} 
+              labStaff={currentStaff} 
               onView={setSelectedStaff}
               onEdit={handleEdit}
               onDelete={handleDelete}
@@ -182,6 +193,16 @@ export default function AdminLaboratoryPage() {
               onResetCredentials={handleResetCredentials}
               actionLoading={actionLoading}
             />
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPrevious={() => setCurrentPage(p => Math.max(1, p - 1))}
+                onNext={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              />
+            )}
           </>
         ) : (
           <LabTestsTable labTests={labTests} />

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { DollarSign, FileText, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { DollarSign, FileText, CheckCircle, Clock, AlertCircle, Receipt } from 'lucide-react';
 import { billingService } from '../../api/billingService';
 import type { Bill } from '../../api/billingService';
 import InvoiceModal from '../../components/admin/billing/InvoiceModal';
+import Pagination from '../../components/common/Pagination';
 import DataTable, { tableHeadClass, tableRowClass, tableCellClass, TableEmptyRow } from '../../components/common/DataTable';
 
 export default function BillingDashboard() {
@@ -10,6 +11,11 @@ export default function BillingDashboard() {
   const [loading, setLoading] = useState(true);
   const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  const [activeTab, setActiveTab] = useState<'pending' | 'completed'>('pending');
+  const [pendingPage, setPendingPage] = useState(1);
+  const [completedPage, setCompletedPage] = useState(1);
+  const itemsPerPage = 5;
 
   const fetchBills = async () => {
     try {
@@ -46,6 +52,17 @@ export default function BillingDashboard() {
   const totalOutstanding = pendingBills.reduce((sum, b) => sum + (b.totalAmount || 0), 0);
   const totalReceived = paidBills.reduce((sum, b) => sum + (b.totalAmount || 0), 0);
 
+  const totalPendingPages = Math.ceil(pendingBills.length / itemsPerPage);
+  const currentPendingBills = pendingBills.slice((pendingPage - 1) * itemsPerPage, pendingPage * itemsPerPage);
+
+  const totalCompletedPages = Math.ceil(paidBills.length / itemsPerPage);
+  const currentCompletedBills = paidBills.slice((completedPage - 1) * itemsPerPage, completedPage * itemsPerPage);
+
+  useEffect(() => {
+    setPendingPage(1);
+    setCompletedPage(1);
+  }, [bills]);
+
   return (
     <div className="p-6 space-y-6 animate-fade-in bg-slate-50/50 min-h-screen">
       {/* Header Profile */}
@@ -53,7 +70,6 @@ export default function BillingDashboard() {
         <div>
           <div className="flex items-center gap-3 mb-2">
             <span className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded uppercase tracking-wider">Accountant</span>
-            <span className="text-sm text-slate-500 flex items-center gap-1"><Clock className="w-4 h-4"/> Shift: 09:00 AM - 05:00 PM</span>
           </div>
           <h1 className="text-3xl font-bold text-slate-800">Billing Operations</h1>
           <p className="text-slate-500 mt-1">Manage hospital finances, clear pending invoices, and process patient payments.</p>
@@ -86,93 +102,165 @@ export default function BillingDashboard() {
         </div>
       </div>
       
-      {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Pending Bills Queue */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-slate-800">Pending Invoices</h2>
-              <span className="text-xs font-medium bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full">{pendingBills.length} Action(s) Required</span>
-            </div>
-            <div className="overflow-x-auto">
-            <DataTable>
-              <thead className="bg-slate-100 border-b border-slate-200">
-                <tr>
-                  <th className={tableHeadClass}>Invoice ID</th>
-                  <th className={tableHeadClass}>Patient Details</th>
-                  <th className={tableHeadClass}>Department</th>
-                  <th className={`${tableHeadClass} text-right`}>Amount</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {loading ? (
-                  <tr><td colSpan={4} className="p-8 text-center text-slate-400">Loading bills...</td></tr>
-                ) : pendingBills.length === 0 ? (
-                  <TableEmptyRow colSpan={4} message="All caught up! No pending invoices." />
-                ) : (
-                  pendingBills.map(bill => (
-                    <tr 
-                      key={bill.id} 
-                      onClick={() => setSelectedBill(bill)}
-                      className={tableRowClass}
-                    >
-                      <td className={tableCellClass}>
-                        <span className="font-medium text-slate-800 group-hover:text-blue-600 transition-colors">#{bill.id.toString().padStart(6, '0')}</span>
-                        <div className="text-xs text-slate-400 mt-1">{new Date(bill.createdAt).toLocaleDateString()}</div>
-                      </td>
-                      <td className={tableCellClass}>
-                        <div className="font-semibold text-slate-800">{bill.patientName}</div>
-                        <div className="text-xs text-slate-500 font-medium mt-0.5">PAT-{String(bill.patientId).padStart(4, '0')}</div>
-                      </td>
-                      <td className={tableCellClass}>
-                        <span className="inline-flex items-center gap-1 font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded text-xs">
-                          {bill.department}
-                        </span>
-                      </td>
-                      <td className={`${tableCellClass} text-right font-bold text-amber-600`}>
-                        ₹{bill.totalAmount.toFixed(2)}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </DataTable>
-            </div>
-          </div>
+      {/* Tabs */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="flex border-b border-slate-200 bg-slate-50/50">
+          <button
+            onClick={() => setActiveTab('pending')}
+            className={`flex items-center gap-2 px-6 py-4 font-semibold text-sm transition-all border-b-2 -mb-[1px] ${
+              activeTab === 'pending'
+                ? 'border-blue-600 text-blue-600 bg-white'
+                : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-100/50'
+            }`}
+          >
+            <Clock className="w-4 h-4" />
+            Pending Invoices ({pendingBills.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('completed')}
+            className={`flex items-center gap-2 px-6 py-4 font-semibold text-sm transition-all border-b-2 -mb-[1px] ${
+              activeTab === 'completed'
+                ? 'border-blue-600 text-blue-600 bg-white'
+                : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-100/50'
+            }`}
+          >
+            <Receipt className="w-4 h-4" />
+            Recent Transactions ({paidBills.length})
+          </button>
         </div>
 
-        {/* Recent Transactions */}
-        <div className="space-y-6">
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden h-full flex flex-col">
-            <div className="px-6 py-4 border-b border-slate-100 bg-slate-50">
-              <h2 className="text-lg font-semibold text-slate-800">Recent Transactions</h2>
-            </div>
-            <div className="p-4 flex-1 overflow-y-auto">
-              <div className="space-y-3">
-                {paidBills.length === 0 ? (
-                  <p className="text-center text-slate-400 py-8">No recent transactions today.</p>
-                ) : (
-                  paidBills.slice(0, 10).map(bill => (
-                    <div 
-                      key={bill.id}
-                      onClick={() => setSelectedBill(bill)}
-                      className="p-4 rounded-xl border border-slate-100 hover:border-blue-200 hover:shadow-sm transition-all cursor-pointer flex justify-between items-center"
-                    >
-                      <div>
-                        <p className="font-semibold text-slate-800">{bill.patientName}</p>
-                        <p className="text-xs text-slate-500">#{bill.id.toString().padStart(6, '0')} • {bill.department}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-emerald-600">₹{bill.totalAmount.toFixed(2)}</p>
-                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded uppercase">Paid</span>
-                      </div>
-                    </div>
-                  ))
-                )}
+        <div className="p-6">
+          {activeTab === 'pending' ? (
+            <div className="space-y-4">
+              <div className="overflow-x-auto">
+                <DataTable>
+                  <thead className="bg-slate-100 border-b border-slate-200">
+                    <tr>
+                      <th className={tableHeadClass}>Invoice ID</th>
+                      <th className={tableHeadClass}>Patient Details</th>
+                      <th className={tableHeadClass}>Department</th>
+                      <th className={`${tableHeadClass} text-right`}>Amount</th>
+                      <th className={`${tableHeadClass} text-center`}>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {loading ? (
+                      <tr><td colSpan={5} className="p-8 text-center text-slate-400">Loading bills...</td></tr>
+                    ) : pendingBills.length === 0 ? (
+                      <TableEmptyRow colSpan={5} message="All caught up! No pending invoices." />
+                    ) : (
+                      currentPendingBills.map(bill => (
+                        <tr key={bill.id} className={tableRowClass}>
+                          <td className={tableCellClass}>
+                            <span className="font-semibold text-slate-800">#{bill.id.toString().padStart(6, '0')}</span>
+                            <div className="text-xs text-slate-400 mt-1">{new Date(bill.createdAt).toLocaleDateString()}</div>
+                          </td>
+                          <td className={tableCellClass}>
+                            <div className="font-semibold text-slate-800">{bill.patientName}</div>
+                            <div className="text-xs text-slate-500 font-medium mt-0.5">PAT-{String(bill.patientId).padStart(4, '0')}</div>
+                          </td>
+                          <td className={tableCellClass}>
+                            <span className="inline-flex items-center gap-1 font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded text-xs">
+                              {bill.department}
+                            </span>
+                          </td>
+                          <td className={`${tableCellClass} text-right font-bold text-amber-600`}>
+                            ₹{bill.totalAmount.toFixed(2)}
+                          </td>
+                          <td className={`${tableCellClass} text-center`}>
+                            <button
+                              onClick={() => setSelectedBill(bill)}
+                              className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors inline-flex justify-center items-center"
+                              title="Process Invoice"
+                            >
+                              <FileText className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </DataTable>
               </div>
+
+              {totalPendingPages > 1 && (
+                <Pagination
+                  currentPage={pendingPage}
+                  totalPages={totalPendingPages}
+                  onPrevious={() => setPendingPage(p => Math.max(1, p - 1))}
+                  onNext={() => setPendingPage(p => Math.min(totalPendingPages, p + 1))}
+                />
+              )}
             </div>
-          </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="overflow-x-auto">
+                <DataTable>
+                  <thead className="bg-slate-100 border-b border-slate-200">
+                    <tr>
+                      <th className={tableHeadClass}>Invoice ID</th>
+                      <th className={tableHeadClass}>Patient Details</th>
+                      <th className={tableHeadClass}>Department</th>
+                      <th className={tableHeadClass}>Status</th>
+                      <th className={`${tableHeadClass} text-right`}>Amount</th>
+                      <th className={`${tableHeadClass} text-center`}>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {loading ? (
+                      <tr><td colSpan={6} className="p-8 text-center text-slate-400">Loading transactions...</td></tr>
+                    ) : paidBills.length === 0 ? (
+                      <TableEmptyRow colSpan={6} message="No recent transactions today." />
+                    ) : (
+                      currentCompletedBills.map(bill => (
+                        <tr key={bill.id} className={tableRowClass}>
+                          <td className={tableCellClass}>
+                            <span className="font-semibold text-slate-800">#{bill.id.toString().padStart(6, '0')}</span>
+                            <div className="text-xs text-slate-400 mt-1">{new Date(bill.createdAt).toLocaleDateString()}</div>
+                          </td>
+                          <td className={tableCellClass}>
+                            <div className="font-semibold text-slate-800">{bill.patientName}</div>
+                            <div className="text-xs text-slate-500 font-medium mt-0.5">PAT-{String(bill.patientId).padStart(4, '0')}</div>
+                          </td>
+                          <td className={tableCellClass}>
+                            <span className="inline-flex items-center gap-1 font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded text-xs">
+                              {bill.department}
+                            </span>
+                          </td>
+                          <td className={tableCellClass}>
+                            <span className="px-2.5 py-1 text-xs font-bold rounded-full bg-emerald-100 text-emerald-700">
+                              PAID
+                            </span>
+                          </td>
+                          <td className={`${tableCellClass} text-right font-bold text-emerald-600`}>
+                            ₹{bill.totalAmount.toFixed(2)}
+                          </td>
+                          <td className={`${tableCellClass} text-center`}>
+                            <button
+                              onClick={() => setSelectedBill(bill)}
+                              className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors inline-flex justify-center items-center"
+                              title="View Invoice"
+                            >
+                              <FileText className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </DataTable>
+              </div>
+
+              {totalCompletedPages > 1 && (
+                <Pagination
+                  currentPage={completedPage}
+                  totalPages={totalCompletedPages}
+                  onPrevious={() => setCompletedPage(p => Math.max(1, p - 1))}
+                  onNext={() => setCompletedPage(p => Math.min(totalCompletedPages, p + 1))}
+                />
+              )}
+            </div>
+          )}
         </div>
       </div>
 

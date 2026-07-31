@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { getUserById, updateUser } from "../../../api/adminService";
+import { showToast, showConfirm } from "../../../utils/ui-alerts";
 
 export default function EditReceptionist() {
   const { id } = useParams();
@@ -38,7 +39,7 @@ export default function EditReceptionist() {
         email: data.email || "",
       });
     } catch (err) {
-      alert("Failed to load receptionist details");
+      showToast("Failed to load receptionist details", "error");
       navigate("/admin/receptionists");
     } finally {
       setFetching(false);
@@ -46,7 +47,7 @@ export default function EditReceptionist() {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setStaff({ ...staff, [e.target.name]: e.target.value });
+    setStaff({ ...staff, [e.target.name]: (e.target.name === 'mobile' || e.target.name === 'phone') ? e.target.value.replace(/\D/g, "") : e.target.value });
     setErrors({ ...errors, [e.target.name]: "", submit: "" });
   };
 
@@ -73,7 +74,7 @@ export default function EditReceptionist() {
         phone: staff.mobile,
         email: staff.email,
       });
-      alert("Receptionist updated successfully");
+      showToast("Receptionist updated successfully", "success");
       navigate("/admin/receptionists");
     } catch (err: any) {
       setErrors({ ...errors, submit: err.response?.data?.message || "Failed to update receptionist" });
@@ -125,7 +126,7 @@ export default function EditReceptionist() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">Phone Number</label>
-                <input name="mobile" value={staff.mobile} onChange={handleChange} className="w-full rounded-xl border border-slate-200 p-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="10-digit number" />
+                <input maxLength={10} type="tel" name="mobile" value={staff.mobile} onChange={handleChange} className="w-full rounded-xl border border-slate-200 p-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="10-digit number" />
                 {errors.mobile && <p className="mt-1 text-xs text-red-500">{errors.mobile}</p>}
               </div>
               <div>

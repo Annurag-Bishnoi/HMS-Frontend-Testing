@@ -25,7 +25,6 @@ export default function AppointmentTable({
           <th className={tableHeadClass}>Patient</th>
           <th className={tableHeadClass}>Patient ID</th>
           <th className={tableHeadClass}>Doctor</th>
-          <th className={tableHeadClass}>Department</th>
           <th className={tableHeadClass}>Date</th>
           <th className={tableHeadClass}>Time</th>
           <th className={tableHeadClass}>Status</th>
@@ -45,7 +44,7 @@ export default function AppointmentTable({
             />
           ))
         ) : (
-          <TableEmptyRow colSpan={8} message="No appointments found." />
+          <TableEmptyRow colSpan={7} message="No appointments found." />
         )}
       </tbody>
     </DataTable>

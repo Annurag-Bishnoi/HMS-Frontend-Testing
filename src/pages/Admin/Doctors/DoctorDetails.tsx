@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { getDoctorById } from "../../../api/doctorService";
 import type { Doctor } from "../../../types/doctor";
+import { showToast, showConfirm } from "../../../utils/ui-alerts";
 
 export default function DoctorDetails() {
   const { id } = useParams<{ id: string }>();
@@ -14,7 +15,7 @@ export default function DoctorDetails() {
     if (id) {
       getDoctorById(id)
         .then(setDoctor)
-        .catch(() => alert("Doctor not found"))
+        .catch(() => showToast("Doctor not found", "error"))
         .finally(() => setLoading(false));
     }
   }, [id]);

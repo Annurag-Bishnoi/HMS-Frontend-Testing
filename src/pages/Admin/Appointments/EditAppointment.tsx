@@ -8,6 +8,7 @@ import { getPatients, type Patient } from "../../../api/patientService";
 import { getDoctors } from "../../../api/doctorService";
 import type { Doctor } from "../../../types/doctor";
 import type { Appointment } from "../../../types/appointment";
+import { showToast, showConfirm } from "../../../utils/ui-alerts";
 
 export default function EditAppointment() {
   const { id } = useParams();
@@ -54,7 +55,7 @@ export default function EditAppointment() {
 
       navigate(`${basePath}/appointments`);
     } catch (err) {
-      alert("Failed to update appointment.");
+      showToast("Failed to update appointment.", "error");
     }
   };
 

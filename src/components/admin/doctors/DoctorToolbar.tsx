@@ -40,10 +40,16 @@ export default function DoctorToolbar({
         onChange={(e) => setDepartment(e.target.value)}
         className="rounded-lg border px-3 py-2"
       >
-        <option>All</option>
-        <option>Cardiology</option>
-        <option>Neurology</option>
-        <option>Orthopedics</option>
+        <option value="All">All Departments</option>
+        <option value="Cardiology">Cardiology</option>
+        <option value="Neurology">Neurology</option>
+        <option value="Pediatrics">Pediatrics</option>
+        <option value="Orthopedics">Orthopedics</option>
+        <option value="General Surgery">General Surgery</option>
+        <option value="Dermatology">Dermatology</option>
+        <option value="Oncology">Oncology</option>
+        <option value="Emergency">Emergency</option>
+        <option value="Other">Other</option>
       </select>
 
       <select

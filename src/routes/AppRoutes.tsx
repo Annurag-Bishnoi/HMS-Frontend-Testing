@@ -33,12 +33,15 @@ import EditPharmacist from "../pages/Admin/Pharmacy/EditPharmacist";
 import AdminReceptionistPage from "../pages/Admin/Receptionists/AdminReceptionistPage";
 import AddReceptionist from "../pages/Admin/Receptionists/AddReceptionist";
 import EditReceptionist from "../pages/Admin/Receptionists/EditReceptionist";
-import ManageDepartments from "../pages/Admin/MasterData/ManageDepartments";
+import AdminNursePage from "../pages/Admin/Nurses/AdminNursePage";
+import AddNurse from "../pages/Admin/Nurses/AddNurse";
+import EditNurse from "../pages/Admin/Nurses/EditNurse";
+import AdminAccountantPage from "../pages/Admin/Accountants/AdminAccountantPage";
+import AddAccountant from "../pages/Admin/Accountants/AddAccountant";
+import EditAccountant from "../pages/Admin/Accountants/EditAccountant";
 import ManageMedicines from "../pages/Admin/MasterData/ManageMedicines";
 import ManageLabTests from "../pages/Admin/MasterData/ManageLabTests";
 import ManageBeds from "../pages/Admin/MasterData/ManageBeds";
-import HospitalSettings from "../pages/Admin/System/HospitalSettings";
-import AuditLogs from "../pages/Admin/System/AuditLogs";
 
 // Role Dashboards
 import DoctorDashboard from "../pages/Roles/DoctorDashboard";
@@ -54,14 +57,17 @@ import LaboratoryDashboard from "../pages/Roles/LaboratoryDashboard";
 import LabRequestsPage from "../pages/Roles/Lab/LabRequestsPage";
 import LabResultsPage from "../pages/Roles/Lab/LabResultsPage";
 import BillingDashboard from "../pages/Roles/BillingDashboard";
+import InvoicesPage from "../pages/Roles/InvoicesPage";
 import PatientDashboard from "../pages/Roles/PatientDashboard";
 import PatientAppointmentsPage from "../pages/Roles/Patient/PatientAppointmentsPage";
 import PatientVisitHistoryPage from "../pages/Roles/Patient/PatientVisitHistoryPage";
 import PatientPrescriptionsPage from "../pages/Roles/Patient/PatientPrescriptionsPage";
 import PatientLabTestsPage from "../pages/Roles/Patient/PatientLabTestsPage";
 
-// IPD Modules
-import NurseIPDDashboard from "../pages/Roles/Nurse/NurseIPDDashboard";
+// IPD & Nurse Modules
+import NurseDashboard from "../pages/Roles/Nurse/NurseDashboard";
+import NurseIPDPage from "../pages/Roles/Nurse/NurseIPDPage";
+import NurseOPDHistoryPage from "../pages/Roles/Nurse/NurseOPDHistoryPage";
 import DoctorIPDDashboard from "../pages/Roles/Doctor/DoctorIPDDashboard";
 import IPDBedManager from "../pages/Roles/Reception/IPDBedManager";
 
@@ -112,19 +118,24 @@ export default function AppRoutes() {
         <Route path="receptionists" element={<AdminReceptionistPage />} />
         <Route path="receptionists/add" element={<AddReceptionist />} />
         <Route path="receptionists/edit/:id" element={<EditReceptionist />} />
+        {/* Nurse Routes */}
+        <Route path="nurses" element={<AdminNursePage />} />
+        <Route path="nurses/add" element={<AddNurse />} />
+        <Route path="nurses/edit/:id" element={<EditNurse />} />
+
+        {/* Accountant Routes */}
+        <Route path="accountants" element={<AdminAccountantPage />} />
+        <Route path="accountants/add" element={<AddAccountant />} />
+        <Route path="accountants/edit/:id" element={<EditAccountant />} />
 
         {/* Master Data Routes */}
-        <Route path="departments" element={<ManageDepartments />} />
         <Route path="medicines" element={<ManageMedicines />} />
         <Route path="lab-tests" element={<ManageLabTests />} />
         <Route path="beds" element={<ManageBeds />} />
 
-        {/* System Oversight */}
-        <Route path="settings" element={<HospitalSettings />} />
-        <Route path="audit-logs" element={<AuditLogs />} />
-
         {/* Billing Route */}
         <Route path="billing" element={<BillingDashboard />} />
+        <Route path="invoices" element={<InvoicesPage />} />
 
       </Route>
 
@@ -163,7 +174,9 @@ export default function AppRoutes() {
       
       {/* Nurse Routes */}
       <Route path="/nurse/*" element={<DashboardLayout />}>
-        <Route path="dashboard" element={<NurseIPDDashboard />} />
+        <Route path="dashboard" element={<NurseDashboard />} />
+        <Route path="ipd" element={<NurseIPDPage />} />
+        <Route path="history" element={<NurseOPDHistoryPage />} />
       </Route>
 
       {/* Pharmacy Routes */}
@@ -183,6 +196,7 @@ export default function AppRoutes() {
       {/* Billing Routes */}
       <Route path="/billing/*" element={<DashboardLayout />}>
         <Route path="dashboard" element={<BillingDashboard />} />
+        <Route path="invoices" element={<InvoicesPage />} />
       </Route>
 
       {/* Patient Routes */}

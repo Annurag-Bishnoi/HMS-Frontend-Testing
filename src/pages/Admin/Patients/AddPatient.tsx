@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, User, Phone, Mail, MapPin, CheckCircle } from "lucide-react";
 import { createPatient } from "../../../api/patientService";
 import { getUser } from "../../../utils/token";
+import { showToast, showConfirm } from "../../../utils/ui-alerts";
 
 export default function AddPatient() {
   const navigate = useNavigate();
@@ -82,7 +83,7 @@ export default function AddPatient() {
           password: response.temporaryPassword
         });
       } else {
-        alert("Patient Added Successfully");
+        showToast("Patient Added Successfully", "success");
         navigate(`${basePath}/patients`);
       }
     } catch (err: any) {

@@ -11,14 +11,18 @@ export default function DoctorStats({ doctors }: DoctorStatsProps) {
   // ---------- Dynamic calculations ----------
   const totalDoctors = doctors?.length || 0;
 
-  // Count doctors whose status is exactly "Available"
-  const availableToday = (doctors || []).filter((d) => d?.status === "Available").length;
+  // Count doctors whose status is exactly "Active"
+  const availableToday = (doctors || []).filter((d) => d?.status === "Active").length;
 
-  // Count doctors whose status is exactly "On Leave"
-  const onLeave = (doctors || []).filter((d) => d?.status === "On Leave").length;
+  // Count doctors whose status is exactly "Inactive"
+  const onLeave = (doctors || []).filter((d) => d?.status === "Inactive").length;
 
-  // Count distinct department names
-  const departments = new Set((doctors || []).filter(d => d?.department).map((d) => d.department)).size;
+  // Count distinct department names (ignore falsy or "Unknown")
+  const departments = new Set(
+    (doctors || [])
+      .filter(d => d?.department && d.department !== "Unknown" && d.department.trim() !== "")
+      .map((d) => d.department)
+  ).size;
 
   // Build the stats array using the computed values
   const stats = [

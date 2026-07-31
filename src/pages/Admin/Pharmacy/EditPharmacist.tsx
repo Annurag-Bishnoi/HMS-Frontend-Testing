@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, CheckCircle, Loader2 } from "lucide-react";
 import { getUserById, updateUser } from "../../../api/adminService";
+import { showToast, showConfirm } from "../../../utils/ui-alerts";
 
 export default function EditPharmacist() {
   const navigate = useNavigate();
@@ -29,7 +30,7 @@ export default function EditPharmacist() {
           username: data.username || ""
         });
       } catch (err: any) {
-        alert("Failed to fetch staff details");
+        showToast("Failed to fetch staff details", "error");
         navigate("/admin/pharmacy");
       } finally {
         setLoading(false);
@@ -41,7 +42,7 @@ export default function EditPharmacist() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!staff.fullName) {
-      alert("Name is required");
+      showToast("Name is required", "error");
       return;
     }
     
@@ -54,7 +55,7 @@ export default function EditPharmacist() {
       });
       setSuccess(true);
     } catch (err: any) {
-      alert("Failed to update pharmacist: " + (err.response?.data?.message || err.message));
+      showToast("Failed to update pharmacist: " + (err.response?.data?.message || err.message, "error"));
     } finally {
       setSaving(false);
     }
@@ -107,7 +108,7 @@ export default function EditPharmacist() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Full Name *</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Full Name <span className="text-red-500">*</span></label>
                 <input
                   type="text"
                   required
@@ -132,7 +133,7 @@ export default function EditPharmacist() {
                 <input
                   type="tel"
                   value={staff.phone}
-                  onChange={(e) => setStaff({...staff, phone: e.target.value})}
+                  onChange={(e) => setStaff({...staff, phone: e.target.value.replace(/\D/g, "")})}
                   className="w-full rounded-lg border border-slate-300 p-2.5 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
                   placeholder="+1 234 567 890"
                 />

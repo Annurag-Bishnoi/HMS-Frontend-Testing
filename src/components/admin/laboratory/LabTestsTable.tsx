@@ -2,6 +2,7 @@ import { useState } from "react";
 import { X, FileText } from "lucide-react";
 import DocumentViewerModal from "../../common/DocumentViewerModal";
 import DataTable, { TableEmptyRow } from "../../common/DataTable";
+import Pagination from "../../common/Pagination";
 import { tableHeadClass, tableHeadActionsClass, tableRowClass, tableCellClass } from "../../common/DataTable";
 import TableStatusBadge from "../../common/TableStatusBadge";
 import { TableViewButton, TableActionCell } from "../../common/TableActions";
@@ -13,6 +14,11 @@ interface LabTestsTableProps {
 export default function LabTestsTable({ labTests }: LabTestsTableProps) {
   const [selectedResult, setSelectedResult] = useState<any | null>(null);
   const [docUrl, setDocUrl] = useState<string | null>(null);
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+  const totalPages = Math.ceil(labTests.length / itemsPerPage);
+  const currentTests = labTests.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <>
@@ -32,7 +38,7 @@ export default function LabTestsTable({ labTests }: LabTestsTableProps) {
           {labTests.length === 0 ? (
             <TableEmptyRow colSpan={7} message="No laboratory tests found." />
           ) : (
-            labTests.map((test) => (
+            currentTests.map((test) => (
               <tr key={test.testId} className={tableRowClass}>
                 <td className={`${tableCellClass} font-semibold`}>{test.testCode}</td>
                 <td className={tableCellClass}>{test.testName}</td>
@@ -59,6 +65,15 @@ export default function LabTestsTable({ labTests }: LabTestsTableProps) {
           )}
         </tbody>
       </DataTable>
+
+      {totalPages > 1 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPrevious={() => setCurrentPage(p => Math.max(1, p - 1))}
+          onNext={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+        />
+      )}
 
       {selectedResult && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-in fade-in">

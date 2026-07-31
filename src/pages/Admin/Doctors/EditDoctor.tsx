@@ -4,6 +4,7 @@ import DoctorForm from "../../../components/admin/doctors/DoctorForm";
 import { ArrowLeft } from "lucide-react";
 import { getDoctorById, updateDoctor } from "../../../api/doctorService";
 import type { Doctor } from "../../../types/doctor";
+import { showToast, showConfirm } from "../../../utils/ui-alerts";
 
 export default function EditDoctor() {
   const { id } = useParams<{ id: string }>();
@@ -15,7 +16,7 @@ export default function EditDoctor() {
     if (id) {
       getDoctorById(id)
         .then(setDoctor)
-        .catch(() => alert("Doctor not found"))
+        .catch(() => showToast("Doctor not found", "error"))
         .finally(() => setLoading(false));
     }
   }, [id]);
@@ -27,7 +28,7 @@ export default function EditDoctor() {
         navigate("/admin/doctors");
       }
     } catch (err: any) {
-      alert("Failed to update: " + (err.response?.data?.message || err.message));
+      showToast("Failed to update: " + (err.response?.data?.message || err.message, "error"));
     }
   };
 

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, User, Phone, Mail, CheckCircle } from "lucide-react";
 import { createStaffUser } from "../../../api/adminService";
+import { parseBackendError } from "../../../utils/errorHandler";
 
 const genUsername = () => {
   return `rec${String(Math.floor(Math.random() * 1000000)).padStart(6, '0')}`;
@@ -80,7 +81,7 @@ export default function AddReceptionist() {
         navigate("/admin/receptionists");
       }
     } catch (err: any) {
-      setErrors({ ...errors, submit: err.response?.data?.message || err.message || "Failed to create receptionist." });
+      setErrors({ ...errors, submit: parseBackendError(err, "Failed to create receptionist.") });
     } finally {
       setLoading(false);
     }

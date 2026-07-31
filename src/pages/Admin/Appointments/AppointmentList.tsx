@@ -7,9 +7,11 @@ import AppointmentToolbar from "../../../components/admin/appointments/Appointme
 import AppointmentTable from "../../../components/admin/appointments/AppointmentTable";
 import AppointmentDetailsModal from "../../../components/admin/appointments/AppointmentDetailsModal";
 import TriageVitalsModal from "../../../components/admin/appointments/TriageVitalsModal";
+import Pagination from "../../../components/common/Pagination";
 
 import { getAppointments, cancelAppointment, markPaymentPaid } from "../../../api/appointmentService";
 import type { Appointment } from "../../../types/appointment";
+import { showToast, showConfirm } from "../../../utils/ui-alerts";
 
 export default function AppointmentList() {
   const navigate = useNavigate();
@@ -22,7 +24,6 @@ export default function AppointmentList() {
 
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All Status");
-  const [department, setDepartment] = useState("All Departments");
   
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -60,7 +61,7 @@ export default function AppointmentList() {
   };
 
   const handleDelete = async (appointment: Appointment) => {
-    const confirmed = window.confirm(
+    const confirmed = await showConfirm(
       `Are you sure you want to cancel the appointment for ${appointment.patientName}?`
     );
 
@@ -70,7 +71,7 @@ export default function AppointmentList() {
       await cancelAppointment(appointment.id);
       await fetchAppointments();
     } catch (err) {
-      alert("Failed to cancel appointment");
+      showToast("Failed to cancel appointment", "error");
     }
   };
 
@@ -80,10 +81,18 @@ export default function AppointmentList() {
         app.patientName.toLowerCase().includes(search.toLowerCase()) ||
         app.doctorName.toLowerCase().includes(search.toLowerCase());
       const matchesStatus = status === "All Status" || app.status === status;
-      const matchesDept = department === "All Departments" || app.department === department;
-      return matchesSearch && matchesStatus && matchesDept;
+      return matchesSearch && matchesStatus;
     });
-  }, [appointments, search, status, department]);
+  }, [appointments, search, status]);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+  const totalPages = Math.ceil(filteredAppointments.length / itemsPerPage);
+  const currentAppointments = filteredAppointments.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, status]);
 
   return (
     <div className="space-y-6">
@@ -96,17 +105,25 @@ export default function AppointmentList() {
         setSearch={setSearch}
         status={status}
         setStatus={setStatus}
-        department={department}
-        setDepartment={setDepartment}
       />
 
       <AppointmentTable
-        appointments={filteredAppointments}
+        appointments={currentAppointments}
         onView={handleView}
         onEdit={handleEdit}
         onDelete={handleDelete}
         onTriage={user?.role === "RECEPTIONIST" || user?.role === "ADMIN" ? handleTriage : undefined}
       />
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPrevious={() => setCurrentPage(p => Math.max(1, p - 1))}
+          onNext={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+        />
+      )}
 
       <AppointmentDetailsModal
         appointment={selectedAppointment}

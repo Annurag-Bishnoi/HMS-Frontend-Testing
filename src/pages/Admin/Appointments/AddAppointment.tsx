@@ -2,16 +2,16 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { getUser } from "../../../utils/token";
 import AppointmentForm from "../../../components/admin/appointments/AppointmentForm";
-import TriageVitalsModal from "../../../components/admin/appointments/TriageVitalsModal";
-import { CheckCircle, AlertCircle, Activity, Play, ChevronRight, Stethoscope } from "lucide-react";
+import { CheckCircle, Activity, ChevronRight } from "lucide-react";
 
 import { createAppointment, markPaymentPaid, updateAppointmentStatus, getAppointmentById } from "../../../api/appointmentService";
 import { getPatients, type Patient } from "../../../api/patientService";
 import { getDoctors } from "../../../api/doctorService";
 import type { Doctor } from "../../../types/doctor";
 import type { Appointment } from "../../../types/appointment";
+import { showToast, showConfirm } from "../../../utils/ui-alerts";
 
-type WorkflowStep = 'BOOKING' | 'PAYMENT' | 'VITALS' | 'DONE';
+type WorkflowStep = 'BOOKING' | 'PAYMENT' | 'DONE';
 
 export default function AddAppointment() {
   const navigate = useNavigate();
@@ -30,7 +30,6 @@ export default function AddAppointment() {
   const [step, setStep] = useState<WorkflowStep>('BOOKING');
   const [successAppointment, setSuccessAppointment] = useState<any>(null);
   const [actionLoading, setActionLoading] = useState(false);
-  const [isVitalsModalOpen, setIsVitalsModalOpen] = useState(false);
   const [doneMessage, setDoneMessage] = useState("");
 
   useEffect(() => {
@@ -60,9 +59,12 @@ export default function AddAppointment() {
       const created = await createAppointment(pendingAppointment);
       setSuccessAppointment(created);
       await markPaymentPaid(created.appointmentId || created.id);
-      setStep('VITALS');
+      
+      await updateAppointmentStatus(created.appointmentId || created.id, 'WAITING_FOR_VITALS');
+      setDoneMessage("Appointment booked and payment received. Patient added to Nurse Queue.");
+      setStep('DONE');
     } catch (err) {
-      alert("Failed to process payment & book appointment.");
+      showToast("Failed to process payment & book appointment.", "error");
     } finally {
       setActionLoading(false);
     }
@@ -71,48 +73,6 @@ export default function AddAppointment() {
   const handlePayLater = () => {
     // If they cancel payment, we don't book the appointment at all.
     navigate(`${basePath}/dashboard`);
-  };
-
-  const handleSkipVitals = async () => {
-    if (!successAppointment) return;
-    setActionLoading(true);
-    try {
-      await updateAppointmentStatus(successAppointment.appointmentId || successAppointment.id, 'READY_FOR_DOCTOR');
-      setDoneMessage("Patient successfully sent to Doctor Queue (Vitals Skipped). Redirecting to dashboard...");
-      setStep('DONE');
-    } catch (err) {
-      alert("Failed to update status.");
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleVitalsLater = async () => {
-    if (!successAppointment) return;
-    setActionLoading(true);
-    try {
-      await updateAppointmentStatus(successAppointment.appointmentId || successAppointment.id, 'WAITING_FOR_VITALS');
-      setDoneMessage("Patient is Waiting for Vitals. They will not enter the Doctor Queue until vitals are recorded. Redirecting to dashboard...");
-      setStep('DONE');
-    } catch (err) {
-      alert("Failed to update status.");
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleVitalsSuccess = async () => {
-    setIsVitalsModalOpen(false);
-    setActionLoading(true);
-    try {
-      await updateAppointmentStatus(successAppointment.appointmentId || successAppointment.id, 'READY_FOR_DOCTOR');
-      setDoneMessage("Patient successfully sent to Doctor Queue with recorded vitals. Redirecting to dashboard...");
-      setStep('DONE');
-    } catch (err) {
-      alert("Failed to update status.");
-    } finally {
-      setActionLoading(false);
-    }
   };
 
   // Auto-redirect to dashboard when DONE
@@ -198,60 +158,7 @@ export default function AddAppointment() {
         </div>
       )}
 
-      {step === 'VITALS' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="bg-emerald-50 p-6 border-b border-emerald-100 flex flex-col items-center">
-              <div className="h-16 w-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-4">
-                <CheckCircle size={32} />
-              </div>
-              <h2 className="text-xl font-bold text-emerald-800 text-center">Payment Successful!</h2>
-              <p className="text-sm text-emerald-600/80 mt-1 text-center">The consultation fee has been recorded.</p>
-            </div>
-            
-            <div className="p-8 bg-white text-center">
-              <div className="mx-auto h-12 w-12 bg-indigo-50 text-indigo-500 rounded-xl flex items-center justify-center mb-4">
-                <Activity size={24} />
-              </div>
-              <h3 className="text-lg font-bold text-slate-800 mb-2">Record Patient Vitals?</h3>
-              <p className="text-sm text-slate-500 mb-6">Recording vitals now will immediately send the patient to the doctor's triage queue.</p>
-              
-              <button
-                onClick={() => setIsVitalsModalOpen(true)}
-                className="w-full rounded-xl bg-indigo-600 py-3.5 font-bold text-white shadow-md hover:bg-indigo-700 transition flex items-center justify-center gap-2 mb-3"
-              >
-                <Activity size={18} /> Record Vitals Now
-              </button>
-              
-              <div className="flex gap-3">
-                <button
-                  onClick={handleVitalsLater}
-                  disabled={actionLoading}
-                  className="w-1/2 rounded-xl bg-slate-100 py-3 font-semibold text-slate-600 hover:bg-slate-200 transition"
-                >
-                  Wait for Vitals
-                </button>
-                <button
-                  onClick={handleSkipVitals}
-                  disabled={actionLoading}
-                  className="w-1/2 rounded-xl bg-white border border-slate-200 py-3 font-semibold text-slate-600 hover:bg-slate-50 transition"
-                >
-                  Skip Vitals
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
-      {isVitalsModalOpen && successAppointment && (
-        <TriageVitalsModal 
-          appointmentId={successAppointment.appointmentId || successAppointment.id}
-          patientName={patients.find(p => String(p.id) === String(successAppointment.patientId))?.name || 'Patient'}
-          onClose={() => setIsVitalsModalOpen(false)}
-          onSuccess={handleVitalsSuccess}
-        />
-      )}
 
       {step === 'DONE' && (
         <div className="max-w-2xl mx-auto rounded-3xl bg-white p-12 text-center shadow-sm border border-slate-100 animate-in fade-in zoom-in-95 duration-500 mt-12">

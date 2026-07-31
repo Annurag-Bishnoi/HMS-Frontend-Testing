@@ -3,12 +3,14 @@ import { useNavigate } from "react-router-dom";
 
 import DoctorHeader from "../../../components/admin/doctors/DoctorHeader";
 import DoctorStats from "../../../components/admin/doctors/DoctorStats";
+import Pagination from "../../../components/common/Pagination";
 import DoctorToolbar from "../../../components/admin/doctors/DoctorToolbar";
 import DoctorTable from "../../../components/admin/doctors/DoctorTable";
 import DoctorDetailsModal from "../../../components/admin/doctors/DoctorDetailsModal";
 
 import { getDoctors, updateDoctorStatus } from "../../../api/doctorService";
 import type { Doctor } from "../../../types/doctor";
+import { showToast, showConfirm } from "../../../utils/ui-alerts";
 
 export default function DoctorList() {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
@@ -41,7 +43,7 @@ export default function DoctorList() {
       await updateDoctorStatus(doctor.id.toString(), newStatus);
       await fetchDoctors();
     } catch (err: any) {
-      alert("Failed to change status");
+      showToast("Failed to change status", "error");
     }
   };
 
@@ -50,20 +52,37 @@ export default function DoctorList() {
   const [status, setStatus] = useState("All");
 
   const filteredDoctors = useMemo(() => {
-    return (doctors || []).filter(doctor => {
-      if (!doctor) return false;
-      const searchName = doctor.name || "";
-      const matchesSearch = searchName.toLowerCase().includes(search.toLowerCase());
-      
-      const docDept = doctor.department || "General";
-      const matchesDept = department === "All" || docDept === department;
-      
-      const docStatus = doctor.status || "Inactive";
-      const matchesStatus = status === "All" || docStatus === status;
-      
-      return matchesSearch && matchesDept && matchesStatus;
-    });
+    return (doctors || [])
+      // Filter out dummy/unclean records (missing name or just "Unknown")
+      .filter(doctor => doctor && doctor.name && doctor.name.trim() !== "" && doctor.name !== "Unknown")
+      .filter(doctor => {
+        const searchName = doctor.name || "";
+        const matchesSearch = searchName.toLowerCase().includes(search.toLowerCase());
+        
+        const docDept = doctor.department || "General";
+        const matchesDept = department === "All" || docDept === department;
+        
+        const docStatus = doctor.status || "Inactive";
+        const matchesStatus = status === "All" || docStatus === status;
+        
+        return matchesSearch && matchesDept && matchesStatus;
+      });
   }, [doctors, search, department, status]);
+
+  // Pagination Logic
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+  
+  const totalPages = Math.ceil(filteredDoctors.length / itemsPerPage);
+  const currentDoctors = filteredDoctors.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Reset to page 1 if filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, department, status]);
 
   return (
     <div className="space-y-6">
@@ -78,7 +97,7 @@ export default function DoctorList() {
         setStatus={setStatus}
       />
       <DoctorTable
-        doctors={filteredDoctors}
+        doctors={currentDoctors}
         onView={(doc) => {
           setSelectedDoctor(doc);
           setIsModalOpen(true);
@@ -86,6 +105,16 @@ export default function DoctorList() {
         onEdit={(doc) => navigate(`/admin/doctors/${doc.id}/edit`)}
         onToggleStatus={handleToggleStatus}
       />
+
+      {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPrevious={() => setCurrentPage(p => Math.max(1, p - 1))}
+            onNext={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+          />
+        )}
 
       <DoctorDetailsModal 
         doctor={selectedDoctor} 

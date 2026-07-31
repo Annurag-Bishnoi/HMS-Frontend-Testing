@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Settings, Save, Building, Phone, Mail, MapPin } from "lucide-react";
+import { showToast, showConfirm } from "../../../utils/ui-alerts";
 
 export default function HospitalSettings() {
   const [settings, setSettings] = useState({
@@ -27,7 +28,7 @@ export default function HospitalSettings() {
     // Simulate API call
     setTimeout(() => {
       setSaving(false);
-      alert("Settings saved successfully.");
+      showToast("Settings saved successfully.", "success");
     }, 1000);
   };
 
@@ -83,8 +84,8 @@ export default function HospitalSettings() {
               <label className="block text-sm font-semibold text-slate-700 mb-2">Contact Number</label>
               <div className="relative">
                 <Phone size={18} className="absolute left-3 top-3.5 text-slate-400" />
-                <input 
-                  type="text" 
+                <input maxLength={10} type="tel" 
+                   
                   name="phone"
                   value={settings.phone}
                   onChange={handleChange}

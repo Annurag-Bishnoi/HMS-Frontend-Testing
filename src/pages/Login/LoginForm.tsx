@@ -5,32 +5,27 @@ import { useNavigate } from "react-router-dom";
 
 import InputField from "../../components/ui/InputField";
 import PasswordField from "../../components/ui/PasswordField";
+import ContactAdminModal from "./ContactAdminModal";
 
 import { login } from "../../api/authService";
 import { saveUser } from "../../utils/token";
 
-const DEMO_ROLES = [
-  { id: "admin", label: "Admin", username: "admin01", icon: "👑", color: "bg-blue-100 text-blue-600 border-blue-200 hover:bg-blue-200" },
-  { id: "doctor", label: "Doctor", username: "doctor01", icon: "👨‍⚕️", color: "bg-emerald-100 text-emerald-600 border-emerald-200 hover:bg-emerald-200" },
-  { id: "reception", label: "Reception", username: "reception01", icon: "👩‍💼", color: "bg-indigo-100 text-indigo-600 border-indigo-200 hover:bg-indigo-200" },
-  { id: "pharma", label: "Pharmacy", username: "pharma01", icon: "💊", color: "bg-teal-100 text-teal-600 border-teal-200 hover:bg-teal-200" },
-  { id: "lab", label: "Lab", username: "lab01", icon: "🔬", color: "bg-purple-100 text-purple-600 border-purple-200 hover:bg-purple-200" },
-  { id: "billing", label: "Billing", username: "billing01", icon: "💳", color: "bg-orange-100 text-orange-600 border-orange-200 hover:bg-orange-200" },
-  { id: "patient", label: "Patient", username: "patient01", icon: "🤒", color: "bg-pink-100 text-pink-600 border-pink-200 hover:bg-pink-200" },
-];
+
 
 export default function LoginForm() {
   const navigate = useNavigate();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   const handleLogin = async () => {
-    if (!username || !password) {
-      setError("Please enter username and password.");
+    if (!username || !password || !role) {
+      setError("Please enter username, password, and select a role.");
       return;
     }
 
@@ -41,6 +36,7 @@ export default function LoginForm() {
       const response = await login({
         username,
         password,
+        role,
       });
 
       if (response.success) {
@@ -69,6 +65,10 @@ export default function LoginForm() {
 
           case "LABORATORY":
             navigate("/lab/dashboard");
+            break;
+
+          case "NURSE":
+            navigate("/nurse/dashboard");
             break;
 
           case "BILLING":
@@ -122,30 +122,35 @@ export default function LoginForm() {
         Login to Hospital Management System
       </p>
 
-      {/* Role Selector for Demo */}
-      <div className="mt-6">
-        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Quick Login (Demo)</p>
-        <div className="flex flex-wrap gap-2">
-          {DEMO_ROLES.map((role) => (
-            <button
-              key={role.id}
-              onClick={() => {
-                setUsername(role.username);
-                setPassword("Anurag@123");
-                setError("");
-              }}
-              type="button"
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium transition-all ${role.color} ${username === role.username ? 'ring-2 ring-offset-1 ring-blue-500' : ''}`}
-            >
-              <span>{role.icon}</span>
-              {role.label}
-            </button>
-          ))}
+
+
+      {/* Role Selection */}
+      <div className="mt-8">
+        <label className="text-sm font-medium text-slate-700 mb-1 block">Role</label>
+        <div className="relative">
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            className="w-full appearance-none rounded-xl border border-slate-200 bg-white p-3 pr-10 text-slate-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer transition-all hover:border-blue-300"
+          >
+            <option value="" disabled>Select your role...</option>
+            <option value="ADMIN">Admin</option>
+            <option value="DOCTOR">Doctor</option>
+            <option value="NURSE">Nurse</option>
+            <option value="RECEPTIONIST">Receptionist</option>
+            <option value="PHARMACIST">Pharmacist</option>
+            <option value="LABORATORY">Laboratory</option>
+            <option value="BILLING">Billing / Accountant</option>
+            <option value="PATIENT">Patient</option>
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+          </div>
         </div>
       </div>
 
       {/* Username */}
-      <div className="mt-8">
+      <div className="mt-6">
         <InputField
           label="Username"
           type="text"
@@ -173,6 +178,7 @@ export default function LoginForm() {
 
         <button
           type="button"
+          onClick={() => setIsContactModalOpen(true)}
           className="text-sm text-blue-600 hover:underline"
         >
           Forgot Password?
@@ -198,10 +204,19 @@ export default function LoginForm() {
       {/* Contact */}
       <p className="mt-6 text-center text-slate-500">
         Need an account?
-        <span className="ml-2 font-semibold text-blue-600">
+        <button
+          type="button"
+          onClick={() => setIsContactModalOpen(true)}
+          className="ml-2 font-semibold text-blue-600 hover:underline"
+        >
           Contact Administrator
-        </span>
+        </button>
       </p>
+
+      <ContactAdminModal 
+        isOpen={isContactModalOpen} 
+        onClose={() => setIsContactModalOpen(false)} 
+      />
     </motion.div>
   );
 }

@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { X, PackagePlus } from "lucide-react";
+import React, { useState, useMemo } from "react";
+import { X, Package } from "lucide-react";
 import { pharmacyService } from "../../../api/pharmacyService";
 import type { StockAdditionRequest, MedicalConcept } from "../../../api/pharmacyService";
 
@@ -7,9 +7,10 @@ interface AddStockModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  preselectedMedicine?: { cielConceptId: string; medicineName: string } | null;
 }
 
-const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose, onSuccess }) => {
+const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose, onSuccess, preselectedMedicine }) => {
   const [formData, setFormData] = useState<StockAdditionRequest>({
     cielConceptId: "",
     batchNumber: "",
@@ -20,41 +21,95 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose, onSucces
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // CIEL Search State
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Approved Inventory State & CIEL search
+  const [approvedMedications, setApprovedMedications] = useState<any[]>([]);
   const [searchResults, setSearchResults] = useState<MedicalConcept[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  // Debounce search
   React.useEffect(() => {
-    const delayDebounceFn = setTimeout(async () => {
-      if (searchQuery.length >= 2) {
-        setIsSearching(true);
-        try {
-          const results = await pharmacyService.searchMedications(searchQuery);
-          setSearchResults(results);
-          setShowDropdown(true);
-        } catch (err) {
-          console.error("Search failed", err);
-        } finally {
-          setIsSearching(false);
-        }
+    if (isOpen) {
+      fetchApproved();
+      if (preselectedMedicine) {
+        setFormData({
+          cielConceptId: preselectedMedicine.cielConceptId,
+          batchNumber: "",
+          quantity: 0,
+          expiryDate: "",
+          supplierName: "",
+          unitPrice: 0,
+        });
+        setSearchQuery(preselectedMedicine.medicineName);
       } else {
-        setSearchResults([]);
-        setShowDropdown(false);
+        setFormData({
+          cielConceptId: "",
+          batchNumber: "",
+          quantity: 0,
+          expiryDate: "",
+          supplierName: "",
+          unitPrice: 0,
+        });
+        setSearchQuery("");
+      }
+    }
+  }, [isOpen, preselectedMedicine]);
+
+  const fetchApproved = async () => {
+    try {
+      const data = await pharmacyService.getAllInventory();
+      setApprovedMedications(data || []);
+    } catch (err) {
+      console.error("Failed to load approved meds:", err);
+    }
+  };
+
+  // Debounce search CIEL medications
+  React.useEffect(() => {
+    if (formData.cielConceptId) {
+      setSearchResults([]);
+      return;
+    }
+
+    if (searchQuery.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    const delayDebounceFn = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const results = await pharmacyService.searchMedications(searchQuery);
+        setSearchResults(results);
+        setShowDropdown(true);
+      } catch (err) {
+        console.error("Search failed", err);
+      } finally {
+        setIsSearching(false);
       }
     }, 500);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [searchQuery]);
+  }, [searchQuery, preselectedMedicine]);
 
   const handleSelectMedicine = (concept: MedicalConcept) => {
-    setFormData({ ...formData, cielConceptId: concept.cielId });
+    setFormData({ 
+      cielConceptId: concept.cielId,
+      batchNumber: "",
+      quantity: 0,
+      expiryDate: "",
+      supplierName: "",
+      unitPrice: 0
+    });
     setSearchQuery(concept.conceptName);
+    setSearchResults([]);
     setShowDropdown(false);
   };
+
+  const matchedLocal = useMemo(() => {
+    return approvedMedications.find(m => m.cielConceptId === formData.cielConceptId);
+  }, [approvedMedications, formData.cielConceptId]);
 
   if (!isOpen) return null;
 
@@ -80,7 +135,7 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose, onSucces
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-emerald-50 to-white">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
-              <PackagePlus className="w-5 h-5" />
+              <Package className="w-5 h-5" />
             </div>
             <h2 className="text-xl font-semibold text-slate-800">Add New Stock Batch</h2>
           </div>
@@ -105,7 +160,8 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose, onSucces
               <label className="block text-sm font-medium text-slate-700 mb-1">Search Medicine (CIEL)</label>
               <input
                 type="text"
-                className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                disabled={!!preselectedMedicine}
+                className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500"
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
@@ -118,33 +174,47 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose, onSucces
                   if (searchResults.length > 0) setShowDropdown(true);
                 }}
                 onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-                placeholder="Type medicine name to search..."
+                placeholder="Type medicine name to search CIEL..."
               />
               {isSearching && (
                 <div className="absolute right-3 top-[34px]">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-500"></div>
                 </div>
               )}
-              {showDropdown && searchResults.length > 0 && (
+              {searchQuery.length >= 2 && showDropdown && searchResults.length > 0 && !formData.cielConceptId && (
                 <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                  {searchResults.map((result) => (
-                    <div
-                      key={result.id}
-                      onMouseDown={(e) => {
-                        e.preventDefault(); // Prevent input onBlur from firing before this
-                        handleSelectMedicine(result);
-                      }}
-                      className="px-4 py-2 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0"
-                    >
-                      <div className="font-medium text-slate-800">{result.conceptName}</div>
-                      <div className="text-xs text-slate-500">CIEL ID: {result.cielId}</div>
-                    </div>
-                  ))}
+                  {searchResults.map((result) => {
+                    const matchedLocal = approvedMedications.find(m => m.cielConceptId === result.cielId);
+                    return (
+                      <div
+                        key={result.id}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          handleSelectMedicine(result);
+                        }}
+                        className="px-4 py-2 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0 flex justify-between items-center"
+                      >
+                        <div>
+                          <div className="font-medium text-slate-800">{result.conceptName}</div>
+                          <div className="text-xs text-slate-500">CIEL ID: {result.cielId}</div>
+                        </div>
+                        {matchedLocal ? (
+                          <span className="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200">
+                            Approved ({matchedLocal.totalStock} units)
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-bold bg-slate-100 text-slate-500 px-2 py-0.5 rounded border border-slate-200">
+                            New Drug
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
               
               {/* Professional CIEL Code Linking Display */}
-              {formData.cielConceptId ? (
+              {formData.cielConceptId && (
                 <div className="mt-3 flex items-center justify-between p-3 bg-emerald-50 border border-emerald-100 rounded-lg">
                   <div className="flex items-center gap-2 text-sm text-emerald-800">
                     <span className="font-semibold">Linked CIEL Code:</span>
@@ -152,10 +222,6 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose, onSucces
                       {formData.cielConceptId}
                     </code>
                   </div>
-                </div>
-              ) : (
-                <div className="mt-3 text-xs text-slate-400 italic">
-                  * Search and select a medicine to link its CIEL code.
                 </div>
               )}
 

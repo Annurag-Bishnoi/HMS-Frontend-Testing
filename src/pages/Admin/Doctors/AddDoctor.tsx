@@ -2,15 +2,18 @@ import DoctorForm from "../../../components/admin/doctors/DoctorForm";
 import type { Doctor } from "../../../types/doctor";
 import { createDoctor } from "../../../api/doctorService";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, CheckCircle } from "lucide-react";
 import { useState } from "react";
+import { ArrowLeft, CheckCircle } from "lucide-react";
+import { parseBackendError } from "../../../utils/errorHandler";
 
 export default function AddDoctor() {
   const navigate = useNavigate();
   const [successData, setSuccessData] = useState<{ username?: string; password?: string } | null>(null);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (doctor: Doctor) => {
     try {
+      setError("");
       const response = await createDoctor(doctor);
       if (response && response.username) {
         setSuccessData({
@@ -21,7 +24,7 @@ export default function AddDoctor() {
         navigate("/admin/doctors");
       }
     } catch (err: any) {
-      alert("Failed to add doctor: " + (err.response?.data?.message || err.message));
+      setError(parseBackendError(err, "Failed to add doctor."));
     }
   };
 
@@ -70,6 +73,13 @@ export default function AddDoctor() {
       </button>
 
       <h1 className="text-3xl font-bold">Add Doctor</h1>
+
+      {error && (
+        <div className="mb-6 p-4 text-red-700 bg-red-50 rounded-xl border border-red-100 flex items-center gap-3">
+          <div className="bg-red-100 p-2 rounded-full"><span className="w-2 h-2 rounded-full bg-red-600 block"></span></div>
+          {error}
+        </div>
+      )}
 
       <DoctorForm onSubmit={handleSubmit} />
     </div>

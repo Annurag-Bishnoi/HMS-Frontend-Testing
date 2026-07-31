@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, CheckCircle } from "lucide-react";
 import { createStaffUser } from "../../../api/adminService";
+import { parseBackendError } from "../../../utils/errorHandler";
 
 const genUsername = () => {
   return `pharma${String(Math.floor(Math.random() * 1000000)).padStart(6, '0')}`;
@@ -22,12 +23,39 @@ export default function AddPharmacist() {
     phone: ""
   });
 
+  const [errors, setErrors] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    submit: ""
+  });
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const { name, value } = e.target;
+    setStaff({
+      ...staff,
+      [name]: name === "phone" ? value.replace(/\D/g, "") : value,
+    });
+    setErrors({ ...errors, [name]: "", submit: "" });
+  };
+
+  const validate = () => {
+    const newErrors = { fullName: "", email: "", phone: "", submit: "" };
+    let valid = true;
+
+    if (!staff.fullName.trim()) { newErrors.fullName = "Required"; valid = false; }
+    if (staff.phone && staff.phone.length !== 10) { newErrors.phone = "Must be 10 digits"; valid = false; }
+    if (staff.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(staff.email)) { newErrors.email = "Invalid email"; valid = false; }
+
+    setErrors(newErrors);
+    return valid;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!staff.fullName) {
-      alert("Name is required");
-      return;
-    }
+    if (!validate()) return;
     
     setLoading(true);
     try {
@@ -48,7 +76,7 @@ export default function AddPharmacist() {
         password: generatedPassword
       });
     } catch (err: any) {
-      alert("Failed to create pharmacist: " + (err.response?.data?.message || err.message));
+      setErrors({ ...errors, submit: parseBackendError(err, "Failed to create pharmacist.") });
     } finally {
       setLoading(false);
     }
@@ -95,7 +123,7 @@ export default function AddPharmacist() {
         className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900"
       >
         <ArrowLeft size={16} />
-        Back to Pharmacy Dashboard
+        Back to Pharmacy
       </button>
 
       <div>
@@ -104,38 +132,51 @@ export default function AddPharmacist() {
       </div>
 
       <div className="rounded-xl bg-white p-6 shadow-sm border border-slate-100">
+        {errors.submit && (
+          <div className="mb-6 p-4 text-red-700 bg-red-50 rounded-xl border border-red-100 flex items-center gap-3">
+            <div className="bg-red-100 p-2 rounded-full"><span className="w-2 h-2 rounded-full bg-red-600 block"></span></div>
+            {errors.submit}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Full Name *</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Full Name <span className="text-red-500">*</span></label>
               <input
                 type="text"
-                required
+                name="fullName"
                 value={staff.fullName}
-                onChange={(e) => setStaff({...staff, fullName: e.target.value})}
-                className="w-full rounded-lg border border-slate-300 p-2.5 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                onChange={handleChange}
+                className={`w-full rounded-lg border ${errors.fullName ? 'border-red-500' : 'border-slate-300'} p-2.5 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none`}
                 placeholder="John Doe"
               />
+              {errors.fullName && <p className="mt-1 text-xs text-red-500">{errors.fullName}</p>}
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
               <input
                 type="email"
+                name="email"
                 value={staff.email}
-                onChange={(e) => setStaff({...staff, email: e.target.value})}
-                className="w-full rounded-lg border border-slate-300 p-2.5 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                onChange={handleChange}
+                className={`w-full rounded-lg border ${errors.email ? 'border-red-500' : 'border-slate-300'} p-2.5 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none`}
                 placeholder="john@hospital.com"
               />
+              {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Phone Number</label>
               <input
                 type="tel"
+                name="phone"
+                maxLength={10}
                 value={staff.phone}
-                onChange={(e) => setStaff({...staff, phone: e.target.value})}
-                className="w-full rounded-lg border border-slate-300 p-2.5 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
-                placeholder="+1 234 567 890"
+                onChange={handleChange}
+                className={`w-full rounded-lg border ${errors.phone ? 'border-red-500' : 'border-slate-300'} p-2.5 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none`}
+                placeholder="10-digit mobile"
               />
+              {errors.phone && <p className="mt-1 text-xs text-red-500">{errors.phone}</p>}
             </div>
           </div>
 

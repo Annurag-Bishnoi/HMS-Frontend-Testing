@@ -25,15 +25,29 @@ import { useNavigate } from "react-router-dom";
 import { getUser, logout } from "../../utils/token";
 
 const adminMenu = [
+  { isHeader: true, title: "Overview" },
   { title: "Dashboard", icon: LayoutDashboard, path: "/admin/dashboard" },
-  { title: "Patients", icon: Users, path: "/admin/patients" },
+  
+  { isHeader: true, title: "Staff Management" },
   { title: "Doctors", icon: UserCog, path: "/admin/doctors" },
+  { title: "Nurses", icon: Activity, path: "/admin/nurses" },
   { title: "Receptionists", icon: Users, path: "/admin/receptionists" },
+  { title: "Accountants", icon: CreditCard, path: "/admin/accountants" },
   { title: "Lab Staff", icon: TestTube, path: "/admin/laboratory" },
   { title: "Pharmacists", icon: Pill, path: "/admin/pharmacy" },
+
+  { isHeader: true, title: "Clinical & Patients" },
+  { title: "Patients", icon: Users, path: "/admin/patients" },
   { title: "Appointments", icon: CalendarDays, path: "/admin/appointments" },
-  { title: "Billing", icon: CreditCard, path: "/admin/billing" },
-  { title: "Settings", icon: Settings, path: "/admin/settings" },
+  
+  { isHeader: true, title: "Financials" },
+  { title: "Billing Desk", icon: CreditCard, path: "/admin/billing" },
+  { title: "Invoices", icon: FileText, path: "/admin/invoices" },
+
+  { isHeader: true, title: "Master Data" },
+  { title: "Beds & Wards", icon: Bed, path: "/admin/beds" },
+  { title: "Medicines", icon: Pill, path: "/admin/medicines" },
+  { title: "Lab Tests", icon: FlaskConical, path: "/admin/lab-tests" },
 ];
 
 const doctorMenu = [
@@ -53,7 +67,9 @@ const receptionistMenu = [
 ];
 
 const nurseMenu = [
-  { title: "IPD Station", icon: Activity, path: "/nurse/dashboard" },
+  { title: "Dashboard", icon: LayoutDashboard, path: "/nurse/dashboard" },
+  { title: "IPD Patients", icon: BedDouble, path: "/nurse/ipd" },
+  { title: "OPD History", icon: FileText, path: "/nurse/history" },
 ];
 
 const pharmacistMenu = [
@@ -108,7 +124,7 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="flex h-screen w-72 shrink-0 flex-col border-r border-slate-200 bg-white shadow-sm">
+    <aside className="flex h-screen w-72 shrink-0 flex-col border-r border-slate-200 bg-white shadow-sm sticky top-0">
 
       {/* Logo */}
 
@@ -133,9 +149,16 @@ export default function Sidebar() {
 
       {/* Menu */}
 
-      <nav className="flex-1 space-y-2 p-5">
+      <nav className="flex-1 overflow-y-auto space-y-2 p-5 custom-scrollbar">
 
-        {menuItems.map((item) => {
+        {menuItems.map((item: any, idx: number) => {
+          if (item.isHeader) {
+            return (
+              <div key={`header-${idx}`} className="px-4 pt-4 pb-1 text-xs font-bold uppercase tracking-wider text-slate-400">
+                {item.title}
+              </div>
+            );
+          }
           const Icon = item.icon;
 
           return (
@@ -164,11 +187,11 @@ export default function Sidebar() {
       <div className="border-t border-slate-200 p-5">
         <div className="mb-5 flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 text-lg font-bold text-white uppercase">
-            {user?.name?.[0] || user?.username?.[0] || "U"}
+            {user?.fullName?.[0] || user?.username?.[0] || "U"}
           </div>
           <div>
             <h3 className="font-semibold truncate max-w-[150px]">
-              {user?.name || user?.username || "User"}
+              {user?.fullName || user?.username || "User"}
             </h3>
             <p className="text-sm text-slate-500 truncate max-w-[150px]">
               {user?.role || "Role"}

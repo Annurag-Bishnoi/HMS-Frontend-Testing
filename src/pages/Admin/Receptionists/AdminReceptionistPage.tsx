@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Plus, Power } from "lucide-react";
+import { Search, UserPlus, Power } from "lucide-react";
+import Pagination from "../../../components/common/Pagination";
 import { getAllUsers, updateUserStatus } from "../../../api/adminService";
 import { tableHeadClass, tableHeadActionsClass, tableRowClass, tableCellClass } from "../../../components/common/DataTable";
 import { TableEmptyRow } from "../../../components/common/DataTable";
 import TableStatusBadge from "../../../components/common/TableStatusBadge";
 import { TableCustomActionButton, TableActionCell, TableViewButton, TableEditButton } from "../../../components/common/TableActions";
 import ReceptionistDetailsModal from "../../../components/admin/receptionists/ReceptionistDetailsModal";
+import { showToast, showConfirm } from "../../../utils/ui-alerts";
 
 export default function AdminReceptionistPage() {
   const [receptionists, setReceptionists] = useState<any[]>([]);
@@ -42,7 +44,7 @@ export default function AdminReceptionistPage() {
       await updateUserStatus(staff.userId, !staff.active);
       setReceptionists(prev => prev.map(s => s.userId === staff.userId ? { ...s, active: !staff.active } : s));
     } catch (err) {
-      alert("Failed to update status");
+      showToast("Failed to update status", "error");
     } finally {
       setActionLoading(null);
     }
@@ -52,6 +54,15 @@ export default function AdminReceptionistPage() {
     staff.fullName?.toLowerCase().includes(search.toLowerCase()) ||
     staff.username?.toLowerCase().includes(search.toLowerCase())
   );
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+  const totalPages = Math.ceil(filteredStaff.length / itemsPerPage);
+  const currentStaff = filteredStaff.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
 
   return (
     <div className="space-y-6 animate-fade-in pb-12">
@@ -64,7 +75,7 @@ export default function AdminReceptionistPage() {
           onClick={() => navigate('/admin/receptionists/add')}
           className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 font-semibold text-white hover:bg-blue-700 transition shadow-sm"
         >
-          <Plus size={20} /> Add Receptionist
+          <UserPlus size={20} /> Add Receptionist
         </button>
       </div>
 
@@ -106,13 +117,13 @@ export default function AdminReceptionistPage() {
               ) : filteredStaff.length === 0 ? (
                 <TableEmptyRow colSpan={7} message="No receptionists found." />
               ) : (
-                filteredStaff.map((staff) => (
+                currentStaff.map((staff) => (
                   <tr key={staff.userId} className={tableRowClass}>
                     <td className={`${tableCellClass} font-semibold`}>{staff.userId}</td>
                     <td className={tableCellClass}>{staff.fullName}</td>
                     <td className={tableCellClass}>@{staff.username}</td>
                     <td className={tableCellClass}>{staff.email || "—"}</td>
-                    <td className={tableCellClass}>{staff.mobileNumber || "—"}</td>
+                    <td className={tableCellClass}>{staff.phone || staff.mobileNumber || "—"}</td>
                     <td className={tableCellClass}>
                       <div className="flex flex-col items-start gap-1">
                         <TableStatusBadge
@@ -128,6 +139,7 @@ export default function AdminReceptionistPage() {
                         onClick={() => handleToggleStatus(staff)}
                         disabled={actionLoading === staff.userId}
                         title={staff.active ? "Deactivate" : "Activate"}
+                        // @ts-ignore
                         icon={Power}
                         variant={staff.active ? "slate" : "emerald"}
                       />
@@ -138,6 +150,16 @@ export default function AdminReceptionistPage() {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPrevious={() => setCurrentPage(p => Math.max(1, p - 1))}
+            onNext={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+          />
+        )}
       </div>
 
       {selectedStaff && (

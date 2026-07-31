@@ -23,6 +23,7 @@ export default function DoctorTable({
           <th className={tableHeadClass}>Name</th>
           <th className={tableHeadClass}>Department</th>
           <th className={tableHeadClass}>Specialization</th>
+          <th className={tableHeadClass}>Contact Info</th>
           <th className={tableHeadClass}>Experience</th>
           <th className={tableHeadClass}>Status</th>
           <th className={tableHeadActionsClass}>Actions</th>
@@ -40,7 +41,7 @@ export default function DoctorTable({
             />
           ))
         ) : (
-          <TableEmptyRow colSpan={6} message="No doctors found." />
+          <TableEmptyRow colSpan={7} message="No doctors found." />
         )}
       </tbody>
     </DataTable>

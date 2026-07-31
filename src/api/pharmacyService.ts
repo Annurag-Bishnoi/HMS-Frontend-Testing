@@ -85,6 +85,11 @@ export const pharmacyService = {
     return response.data;
   },
 
+  getBatches: async (id: number): Promise<any[]> => {
+    const response = await api.get(`/pharmacy/inventory/${id}/batches`);
+    return response.data;
+  },
+
   getAlerts: async (): Promise<InventoryItem[]> => {
     const response = await api.get("/pharmacy/inventory/alerts");
     return response.data;
@@ -127,6 +132,15 @@ export const pharmacyService = {
 
   getDispensedPrescriptions: async (): Promise<Prescription[]> => {
     const response = await api.get("/pharmacy/prescriptions/dispensed");
+    return response.data;
+  },
+
+  discardPrescription: async (id: number): Promise<void> => {
+    await api.put(`/pharmacy/prescriptions/${id}/discard`);
+  },
+
+  getRejectedPrescriptions: async (): Promise<Prescription[]> => {
+    const response = await api.get("/pharmacy/prescriptions/rejected");
     return response.data;
   },
 

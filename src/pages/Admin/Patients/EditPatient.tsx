@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, User, Phone, MapPin } from "lucide-react";
 import { getPatientById, updatePatient } from "../../../api/patientService";
 import { getUser } from "../../../utils/token";
+import { showToast, showConfirm } from "../../../utils/ui-alerts";
 
 export default function EditPatient() {
   const { id } = useParams();
@@ -55,7 +56,7 @@ export default function EditPatient() {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    setPatient({ ...patient, [e.target.name]: e.target.value });
+    setPatient({ ...patient, [e.target.name]: (e.target.name === 'mobile' || e.target.name === 'phone') ? e.target.value.replace(/\D/g, "") : e.target.value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -71,7 +72,7 @@ export default function EditPatient() {
         mobile: patient.mobile,
         address: patient.address,
       });
-      alert("Patient Updated Successfully!");
+      showToast("Patient Updated Successfully!", "success");
       navigate(`${basePath}/patients`);
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to update patient.");

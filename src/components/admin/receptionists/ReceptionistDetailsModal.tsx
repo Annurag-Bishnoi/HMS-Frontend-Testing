@@ -1,6 +1,7 @@
 import { X, User, Phone, Mail, KeyRound, Loader2, CheckCircle2, ToggleLeft, ToggleRight } from "lucide-react";
 import { useState } from "react";
 import { resetUserPassword, updateUserStatus } from "../../../api/adminService";
+import { showToast, showConfirm } from "../../../utils/ui-alerts";
 
 interface ReceptionistDetailsModalProps {
   staff: any;
@@ -24,7 +25,7 @@ export default function ReceptionistDetailsModal({ staff, onClose, onUpdate }: R
       await resetUserPassword(staff.userId, newPass);
       setCredentials({ username: staff.username, password: newPass });
     } catch (err) {
-      alert("Failed to reset credentials");
+      showToast("Failed to reset credentials", "error");
     } finally {
       setIsResetting(false);
     }
@@ -36,7 +37,7 @@ export default function ReceptionistDetailsModal({ staff, onClose, onUpdate }: R
       await updateUserStatus(staff.userId, !staff.active);
       if (onUpdate) onUpdate();
     } catch (err) {
-      alert("Failed to update status");
+      showToast("Failed to update status", "error");
     } finally {
       setIsToggling(false);
     }

@@ -154,11 +154,66 @@ function DailyRoundModal({ admission, onClose, onDischarge }: { admission: any; 
   );
 }
 
+function IPDReportModal({ admission, onClose }: { admission: any; onClose: () => void }) {
+  const [rounds, setRounds] = useState<any[]>([]);
+
+  useEffect(() => {
+    getDailyRounds(admission.id).then(setRounds).catch(console.error);
+  }, [admission.id]);
+
+  return (
+    <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl w-full max-w-3xl flex max-h-[90vh] overflow-hidden shadow-2xl flex-col">
+        {/* Header */}
+        <div className="p-6 bg-slate-50 border-b border-slate-200 flex justify-between items-center shrink-0">
+          <div>
+            <h3 className="font-bold text-xl text-slate-800">IPD Discharge Report</h3>
+            <p className="text-sm text-slate-500">Patient: {admission.patientName} • Billed: {new Date(admission.dischargeDate || Date.now()).toLocaleDateString()}</p>
+          </div>
+          <button onClick={onClose} className="px-4 py-2 bg-slate-200 text-slate-700 font-bold rounded-lg hover:bg-slate-300">Close</button>
+        </div>
+        {/* Content */}
+        <div className="p-6 overflow-y-auto flex-1 space-y-6">
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Admission Details</h4>
+            <p className="text-slate-800"><span className="font-medium text-slate-600">Diagnosis:</span> {admission.admissionDiagnosis}</p>
+            <p className="text-slate-800 mt-2"><span className="font-medium text-slate-600">Ward & Bed:</span> {admission.wardName} (Bed {admission.bedNumber})</p>
+            <p className="text-slate-800 mt-2"><span className="font-medium text-slate-600">Admitted On:</span> {new Date(admission.admissionDate).toLocaleString()}</p>
+          </div>
+          
+          <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-200">
+            <h4 className="text-sm font-bold text-emerald-600 uppercase tracking-wider mb-2">Discharge Summary</h4>
+            <p className="text-emerald-900 whitespace-pre-wrap">{admission.dischargeSummary || 'No discharge summary provided.'}</p>
+          </div>
+
+          <div className="bg-white p-4 rounded-xl border border-slate-200">
+            <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Clinical Notes History</h4>
+            {rounds.length === 0 ? <p className="text-sm text-slate-500">No rounds recorded.</p> : (
+              <div className="space-y-4">
+                {rounds.map(r => (
+                  <div key={r.id} className="border-b border-slate-100 pb-3 last:border-0 last:pb-0">
+                    <div className="flex justify-between items-start mb-1 text-sm">
+                      <span className="font-bold text-slate-800">Dr. {r.doctorName}</span>
+                      <span className="text-xs font-medium text-slate-400">{new Date(r.roundDate).toLocaleString()}</span>
+                    </div>
+                    <p className="text-slate-600 text-sm whitespace-pre-wrap">{r.clinicalNotes}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function DoctorIPDDashboard() {
   const [admissions, setAdmissions] = useState<any[]>([]);
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedAdmission, setSelectedAdmission] = useState<any>(null);
+  const [reportAdmission, setReportAdmission] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'ADMITTED' | 'HISTORY'>('ADMITTED');
 
   useEffect(() => {
@@ -259,6 +314,7 @@ export default function DoctorIPDDashboard() {
                   <th className={tableHeadClass}>Admission Date</th>
                   <th className={tableHeadClass}>Discharge Date</th>
                   <th className={tableHeadClass}>Status</th>
+                  <th className={tableHeadClass}>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -286,6 +342,15 @@ export default function DoctorIPDDashboard() {
                         {h.status}
                       </span>
                     </td>
+                    <td className={tableCellClass}>
+                      <button 
+                        onClick={() => setReportAdmission(h)}
+                        className="p-1.5 bg-indigo-50 text-indigo-600 rounded hover:bg-indigo-100 transition-colors"
+                        title="View IPD Report"
+                      >
+                        <FileText size={16} />
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -299,6 +364,13 @@ export default function DoctorIPDDashboard() {
           admission={selectedAdmission} 
           onClose={() => setSelectedAdmission(null)} 
           onDischarge={handleDischargeSuccess}
+        />
+      )}
+
+      {reportAdmission && (
+        <IPDReportModal 
+          admission={reportAdmission} 
+          onClose={() => setReportAdmission(null)} 
         />
       )}
     </div>

@@ -7,10 +7,11 @@ interface DispenseModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  onReject?: (prescription: Prescription) => void;
   prescription: Prescription | null;
 }
 
-const DispenseModal: React.FC<DispenseModalProps> = ({ isOpen, onClose, onSuccess, prescription }) => {
+const DispenseModal: React.FC<DispenseModalProps> = ({ isOpen, onClose, onSuccess, onReject, prescription }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dispenseItems, setDispenseItems] = useState<{ id: string; qty: number; unitPrice: number }[]>([]);
@@ -21,7 +22,7 @@ const DispenseModal: React.FC<DispenseModalProps> = ({ isOpen, onClose, onSucces
         prescription.medications.map(m => ({
           id: m.medicationCode || '',
           qty: parseInt(m.quantity || "1"),
-          unitPrice: m.unitPrice || 0
+          unitPrice: m.unitPrice || (15.50 + (m.medicineName || '').length * 2)
         }))
       );
     }
@@ -186,6 +187,21 @@ const DispenseModal: React.FC<DispenseModalProps> = ({ isOpen, onClose, onSucces
           >
             {prescription.status === 'DISPENSED' ? 'Close' : 'Cancel'}
           </button>
+          
+          {prescription.status !== 'DISPENSED' && onReject && (
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onReject(prescription);
+              }}
+              disabled={loading}
+              className="px-4 py-2 text-sm font-medium text-rose-700 bg-rose-50 border border-rose-200 rounded-lg hover:bg-rose-100 transition-colors disabled:opacity-50"
+            >
+              Reject Prescription
+            </button>
+          )}
+
           {prescription.status !== 'DISPENSED' && (
             <button
               onClick={handleDispense}

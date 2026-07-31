@@ -22,6 +22,12 @@ export default function DoctorRow({
       <td className={tableCellClass}>{doctor?.name || "Unknown"}</td>
       <td className={tableCellClass}>{doctor?.department || "General"}</td>
       <td className={tableCellClass}>{doctor?.specialization || "N/A"}</td>
+      <td className={tableCellClass}>
+        <div className="flex flex-col">
+          <span className="text-sm text-slate-800">{doctor?.phone || "No Phone"}</span>
+          <span className="text-xs text-slate-500">{doctor?.email || "No Email"}</span>
+        </div>
+      </td>
       <td className={tableCellClass}>{doctor?.experience || 0} Years</td>
       <td className={tableCellClass}>
         <TableStatusBadge

@@ -63,6 +63,27 @@ export default function DoctorForm({
   const [customDept, setCustomDept] = useState(isCustomDept ? initialData?.department || "" : "");
   const [customSpec, setCustomSpec] = useState(isCustomSpec ? initialData?.specialization || "" : "");
 
+  const [errors, setErrors] = useState<Partial<Record<keyof Doctor | 'customDept' | 'customSpec', string>>>({});
+
+  const validate = () => {
+    const newErrors: Partial<Record<keyof Doctor | 'customDept' | 'customSpec', string>> = {};
+    let valid = true;
+
+    if (!doctor.name.trim()) { newErrors.name = "Full name is required"; valid = false; }
+    if (!doctor.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(doctor.email)) { newErrors.email = "Valid email is required"; valid = false; }
+    if (!doctor.phone || doctor.phone.length !== 10) { newErrors.phone = "10-digit mobile number required"; valid = false; }
+    if (!isCustomDept && !doctor.department) { newErrors.department = "Department is required"; valid = false; }
+    if (isCustomDept && !customDept.trim()) { newErrors.customDept = "Custom department is required"; valid = false; }
+    if (!isCustomSpec && !doctor.specialization) { newErrors.specialization = "Specialization is required"; valid = false; }
+    if (isCustomSpec && !customSpec.trim()) { newErrors.customSpec = "Custom specialization is required"; valid = false; }
+    if (!doctor.qualifications.trim()) { newErrors.qualifications = "Qualifications are required"; valid = false; }
+    if (doctor.experience < 0) { newErrors.experience = "Experience cannot be negative"; valid = false; }
+    if (doctor.consultationFee < 0) { newErrors.consultationFee = "Fee cannot be negative"; valid = false; }
+
+    setErrors(newErrors);
+    return valid;
+  };
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -77,6 +98,7 @@ export default function DoctorForm({
           ? Number(val)
           : val,
     });
+    setErrors({ ...errors, [e.target.name]: undefined });
   };
 
   const handleDeptChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -88,6 +110,7 @@ export default function DoctorForm({
       setIsCustomDept(false);
       setDoctor({ ...doctor, department: val });
     }
+    setErrors({ ...errors, department: undefined, customDept: undefined });
   };
 
   const handleSpecChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -99,10 +122,12 @@ export default function DoctorForm({
       setIsCustomSpec(false);
       setDoctor({ ...doctor, specialization: val });
     }
+    setErrors({ ...errors, specialization: undefined, customSpec: undefined });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validate()) return;
     
     // Ensure custom values are applied before submission
     const finalDoctor = { ...doctor };
@@ -132,14 +157,14 @@ export default function DoctorForm({
                 <User size={16} className="text-slate-400" />
               </div>
               <input
-                required
                 name="name"
                 value={doctor.name}
                 onChange={handleChange}
                 placeholder="Dr. John Doe"
-                className="w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className={`w-full rounded-xl border ${errors.name ? 'border-red-500' : 'border-slate-200'} py-2.5 pl-10 pr-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
               />
             </div>
+            {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
           </div>
 
           {/* Email */}
@@ -150,15 +175,15 @@ export default function DoctorForm({
                 <Mail size={16} className="text-slate-400" />
               </div>
               <input
-                required
                 type="email"
                 name="email"
                 value={doctor.email}
                 onChange={handleChange}
                 placeholder="doctor@hospital.com"
-                className="w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className={`w-full rounded-xl border ${errors.email ? 'border-red-500' : 'border-slate-200'} py-2.5 pl-10 pr-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
               />
             </div>
+            {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
           </div>
 
           {/* Phone */}
@@ -169,17 +194,16 @@ export default function DoctorForm({
                 <Phone size={16} className="text-slate-400" />
               </div>
               <input
-                required
                 type="tel"
-                pattern="[0-9]{10}"
-                title="10-digit mobile number"
+                maxLength={10}
                 name="phone"
                 value={doctor.phone}
                 onChange={handleChange}
                 placeholder="10-digit mobile number"
-                className="w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className={`w-full rounded-xl border ${errors.phone ? 'border-red-500' : 'border-slate-200'} py-2.5 pl-10 pr-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
               />
             </div>
+            {errors.phone && <p className="mt-1 text-xs text-red-500">{errors.phone}</p>}
           </div>
         </div>
       </div>
@@ -204,7 +228,7 @@ export default function DoctorForm({
               <select
                 value={isCustomDept ? "Other" : doctor.department || ""}
                 onChange={handleDeptChange}
-                className="w-full appearance-none rounded-xl border border-slate-200 py-2.5 pl-10 pr-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                className={`w-full appearance-none rounded-xl border ${errors.department ? 'border-red-500' : 'border-slate-200'} py-2.5 pl-10 pr-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white`}
               >
                 <option value="" disabled>Select Department</option>
                 {DEPARTMENTS.map(dept => (
@@ -212,15 +236,21 @@ export default function DoctorForm({
                 ))}
               </select>
             </div>
+            {errors.department && !isCustomDept && <p className="mt-1 text-xs text-red-500">{errors.department}</p>}
             {isCustomDept && (
-              <input
-                required
-                type="text"
-                value={customDept}
-                onChange={(e) => setCustomDept(e.target.value)}
-                placeholder="Enter custom department name"
-                className="mt-2 w-full rounded-xl border border-slate-200 py-2.5 px-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
+              <div>
+                <input
+                  type="text"
+                  value={customDept}
+                  onChange={(e) => {
+                    setCustomDept(e.target.value);
+                    setErrors({ ...errors, customDept: undefined });
+                  }}
+                  placeholder="Enter custom department name"
+                  className={`mt-2 w-full rounded-xl border ${errors.customDept ? 'border-red-500' : 'border-slate-200'} py-2.5 px-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
+                />
+                {errors.customDept && <p className="mt-1 text-xs text-red-500">{errors.customDept}</p>}
+              </div>
             )}
           </div>
 
@@ -234,7 +264,7 @@ export default function DoctorForm({
               <select
                 value={isCustomSpec ? "Other" : doctor.specialization || ""}
                 onChange={handleSpecChange}
-                className="w-full appearance-none rounded-xl border border-slate-200 py-2.5 pl-10 pr-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                className={`w-full appearance-none rounded-xl border ${errors.specialization ? 'border-red-500' : 'border-slate-200'} py-2.5 pl-10 pr-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white`}
               >
                 <option value="" disabled>Select Specialization</option>
                 {SPECIALIZATIONS.map(spec => (
@@ -242,15 +272,21 @@ export default function DoctorForm({
                 ))}
               </select>
             </div>
+            {errors.specialization && !isCustomSpec && <p className="mt-1 text-xs text-red-500">{errors.specialization}</p>}
             {isCustomSpec && (
-              <input
-                required
-                type="text"
-                value={customSpec}
-                onChange={(e) => setCustomSpec(e.target.value)}
-                placeholder="Enter custom specialization"
-                className="mt-2 w-full rounded-xl border border-slate-200 py-2.5 px-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
+              <div>
+                <input
+                  type="text"
+                  value={customSpec}
+                  onChange={(e) => {
+                    setCustomSpec(e.target.value);
+                    setErrors({ ...errors, customSpec: undefined });
+                  }}
+                  placeholder="Enter custom specialization"
+                  className={`mt-2 w-full rounded-xl border ${errors.customSpec ? 'border-red-500' : 'border-slate-200'} py-2.5 px-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
+                />
+                {errors.customSpec && <p className="mt-1 text-xs text-red-500">{errors.customSpec}</p>}
+              </div>
             )}
           </div>
 
@@ -262,16 +298,16 @@ export default function DoctorForm({
                 <Briefcase size={16} className="text-slate-400" />
               </div>
               <input
-                required
                 type="number"
                 min="0"
                 name="experience"
                 value={doctor.experience}
                 onChange={handleChange}
                 placeholder="e.g. 5"
-                className="w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className={`w-full rounded-xl border ${errors.experience ? 'border-red-500' : 'border-slate-200'} py-2.5 pl-10 pr-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
               />
             </div>
+            {errors.experience && <p className="mt-1 text-xs text-red-500">{errors.experience}</p>}
           </div>
 
           {/* Qualifications */}
@@ -282,15 +318,15 @@ export default function DoctorForm({
                 <FileBadge size={16} className="text-slate-400" />
               </div>
               <input
-                required
                 type="text"
                 name="qualifications"
                 value={doctor.qualifications}
                 onChange={handleChange}
                 placeholder="e.g. MBBS, MD - Cardiology"
-                className="w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className={`w-full rounded-xl border ${errors.qualifications ? 'border-red-500' : 'border-slate-200'} py-2.5 pl-10 pr-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
               />
             </div>
+            {errors.qualifications && <p className="mt-1 text-xs text-red-500">{errors.qualifications}</p>}
           </div>
 
           {/* Consultation Fee */}
@@ -301,7 +337,6 @@ export default function DoctorForm({
                 <IndianRupee size={16} className="text-slate-400" />
               </div>
               <input
-                required
                 type="number"
                 min="0"
                 step="0.01"
@@ -309,9 +344,10 @@ export default function DoctorForm({
                 value={doctor.consultationFee}
                 onChange={handleChange}
                 placeholder="e.g. 500"
-                className="w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className={`w-full rounded-xl border ${errors.consultationFee ? 'border-red-500' : 'border-slate-200'} py-2.5 pl-10 pr-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
               />
             </div>
+            {errors.consultationFee && <p className="mt-1 text-xs text-red-500">{errors.consultationFee}</p>}
           </div>
 
           {/* Status */}

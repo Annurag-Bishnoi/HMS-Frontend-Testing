@@ -3,6 +3,7 @@ import type { Doctor } from "../../../types/doctor";
 import { useEffect, useState } from "react";
 import { resetDoctorCredentials } from "../../../api/doctorService";
 import { getUser } from "../../../utils/token";
+import { showToast, showConfirm } from "../../../utils/ui-alerts";
 
 interface DoctorDetailsModalProps {
   doctor: Doctor | null;
@@ -30,7 +31,7 @@ export default function DoctorDetailsModal({ doctor, isOpen, onClose }: DoctorDe
   const handleResetCredentials = async () => {
     if (!doctor?.id) return;
     
-    if (window.confirm(`Are you sure you want to reset credentials for ${doctor.name}?`)) {
+    if (await showConfirm(`Are you sure you want to reset credentials for ${doctor.name}?`)) {
       try {
         setIsResetting(true);
         const data = await resetDoctorCredentials(doctor.id.toString());
@@ -39,7 +40,7 @@ export default function DoctorDetailsModal({ doctor, isOpen, onClose }: DoctorDe
           password: data.temporaryPassword
         });
       } catch (err: any) {
-        alert("Failed to reset credentials: " + (err.response?.data?.message || err.message));
+        showToast("Failed to reset credentials: " + (err.response?.data?.message || err.message, "error"));
       } finally {
         setIsResetting(false);
       }

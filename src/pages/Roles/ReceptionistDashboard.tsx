@@ -7,7 +7,6 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { getAppointments } from '../../api/appointmentService';
 import { getUser } from '../../utils/token';
-import TriageVitalsModal from '../../components/admin/appointments/TriageVitalsModal';
 import DataTable, { tableHeadClass, tableRowClass, tableCellClass } from '../../components/common/DataTable';
 
 /* ─── Unified status config ─── */
@@ -40,8 +39,6 @@ export default function ReceptionistDashboard() {
   const user = getUser();
   const basePath = user?.role === "RECEPTIONIST" ? "/receptionist" : "/admin";
 
-  const [triageAppt, setTriageAppt] = useState<any>(null);
-
   useEffect(() => { init(); }, []);
 
   const init = async () => {
@@ -73,14 +70,7 @@ export default function ReceptionistDashboard() {
   const getAction = (appt: any) => {
     switch (appt.status) {
       case 'WAITING_FOR_VITALS':
-        return (
-          <button
-            onClick={() => setTriageAppt(appt)}
-            className="inline-flex items-center gap-1.5 bg-orange-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-orange-600 transition"
-          >
-            <Activity size={11} /> Record Vitals
-          </button>
-        );
+        return <span className="inline-flex items-center gap-1 text-xs font-semibold text-orange-600"><Activity size={12} /> Awaiting Vitals (Nurse)</span>;
       case 'READY_FOR_DOCTOR':
         return <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-600"><Stethoscope size={12} /> With Doctor</span>;
       case 'IN_CONSULTATION':
@@ -258,18 +248,6 @@ export default function ReceptionistDashboard() {
           )}
         </div>
       </div>
-
-      {triageAppt && (
-        <TriageVitalsModal
-          appointmentId={triageAppt.id}
-          patientName={triageAppt.patientName}
-          onClose={() => setTriageAppt(null)}
-          onSuccess={() => {
-            setTriageAppt(null);
-            init(); // Refresh list
-          }}
-        />
-      )}
     </div>
   );
 }

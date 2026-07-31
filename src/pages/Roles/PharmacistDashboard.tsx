@@ -10,6 +10,7 @@ import { getUser } from "../../utils/token";
 import DataTable, { tableHeadClass, tableRowClass, tableCellClass } from "../../components/common/DataTable";
 import DispenseModal from "../../components/admin/pharmacy/DispenseModal";
 import PendingPrescriptionsTable from "../../components/admin/pharmacy/PendingPrescriptionsTable";
+import RejectConfirmationModal from "../../components/admin/pharmacy/RejectConfirmationModal";
 
 export default function PharmacistDashboard() {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ export default function PharmacistDashboard() {
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null);
+  const [prescriptionToReject, setPrescriptionToReject] = useState<Prescription | null>(null);
 
   const user = getUser();
 
@@ -37,6 +39,22 @@ export default function PharmacistDashboard() {
     } catch (err) {
       console.error("Failed to load pharmacy dashboard data", err);
     } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDiscardClick = (prescription: Prescription) => {
+    setPrescriptionToReject(prescription);
+  };
+
+  const executeDiscard = async () => {
+    if (!prescriptionToReject) return;
+    try {
+      setLoading(true);
+      await pharmacyService.discardPrescription(prescriptionToReject.prescriptionId);
+      fetchData();
+    } catch (err) {
+      alert("Failed to discard prescription");
       setLoading(false);
     }
   };
@@ -166,6 +184,7 @@ export default function PharmacistDashboard() {
                 <PendingPrescriptionsTable 
                   prescriptions={prescriptions} 
                   onDispense={(px) => setSelectedPrescription(px)} 
+                  onDiscard={handleDiscardClick}
                 />
               </div>
             )}
@@ -183,6 +202,15 @@ export default function PharmacistDashboard() {
           setSelectedPrescription(null);
           fetchData();
         }}
+        onReject={handleDiscardClick}
+      />
+
+      {/* Reject Confirmation Modal */}
+      <RejectConfirmationModal
+        isOpen={prescriptionToReject !== null}
+        onClose={() => setPrescriptionToReject(null)}
+        onConfirm={executeDiscard}
+        prescription={prescriptionToReject}
       />
     </div>
   );

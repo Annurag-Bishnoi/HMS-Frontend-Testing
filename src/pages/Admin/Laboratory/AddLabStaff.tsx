@@ -2,6 +2,7 @@ import { ArrowLeft, CheckCircle } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createStaffUser } from "../../../api/adminService";
+import { parseBackendError } from "../../../utils/errorHandler";
 
 const genUsername = (name: string) => {
   return `lab${String(Math.floor(Math.random() * 1000000)).padStart(6, '0')}`;
@@ -22,14 +23,37 @@ export default function AddLabStaff() {
     phone: "",
   });
 
+  const [errors, setErrors] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    submit: ""
+  });
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setStaff((prev) => ({ ...prev, [name]: value }));
+    setStaff((prev) => ({ 
+      ...prev, 
+      [name]: name === "phone" ? value.replace(/\D/g, "") : value 
+    }));
+    setErrors((prev) => ({ ...prev, [name]: "", submit: "" }));
+  };
+
+  const validate = () => {
+    const newErrors = { fullName: "", email: "", phone: "", submit: "" };
+    let valid = true;
+
+    if (!staff.fullName.trim()) { newErrors.fullName = "Required"; valid = false; }
+    if (staff.phone && staff.phone.length !== 10) { newErrors.phone = "Must be 10 digits"; valid = false; }
+    if (staff.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(staff.email)) { newErrors.email = "Invalid email"; valid = false; }
+
+    setErrors(newErrors);
+    return valid;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!staff.fullName.trim()) return;
+    if (!validate()) return;
     
     setLoading(true);
     try {
@@ -50,7 +74,7 @@ export default function AddLabStaff() {
         password: generatedPassword
       });
     } catch (err: any) {
-      alert("Failed to create laboratory staff: " + (err.response?.data || err.message));
+      setErrors({ ...errors, submit: parseBackendError(err, "Failed to create staff.") });
     } finally {
       setLoading(false);
     }
@@ -100,47 +124,55 @@ export default function AddLabStaff() {
         Back to Laboratory Staff
       </button>
 
-      <div className="rounded-2xl border bg-white p-8 shadow-sm">
+      <div className="rounded-2xl border border-slate-100 bg-white p-8 shadow-sm">
         <h2 className="mb-6 text-2xl font-bold text-gray-800">Add Laboratory Technician</h2>
+
+        {errors.submit && (
+          <div className="mb-6 p-4 text-red-700 bg-red-50 rounded-xl border border-red-100 flex items-center gap-3">
+            <div className="bg-red-100 p-2 rounded-full"><span className="w-2 h-2 rounded-full bg-red-600 block"></span></div>
+            {errors.submit}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">Full Name *</label>
+            <label className="mb-2 block text-sm font-medium text-gray-700">Full Name <span className="text-red-500">*</span></label>
             <input
               type="text"
               name="fullName"
-              required
               value={staff.fullName}
               onChange={handleChange}
-              className="w-full rounded-lg border p-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className={`w-full rounded-lg border ${errors.fullName ? 'border-red-500' : 'border-slate-300'} p-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
               placeholder="Enter full name"
             />
+            {errors.fullName && <p className="mt-1 text-xs text-red-500">{errors.fullName}</p>}
           </div>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Email Address *</label>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Email Address <span className="text-red-500">*</span></label>
               <input
                 type="email"
                 name="email"
-                required
                 value={staff.email}
                 onChange={handleChange}
-                className="w-full rounded-lg border p-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className={`w-full rounded-lg border ${errors.email ? 'border-red-500' : 'border-slate-300'} p-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
                 placeholder="Enter email"
               />
+              {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
             </div>
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Phone Number *</label>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Phone Number <span className="text-red-500">*</span></label>
               <input
                 type="tel"
                 name="phone"
-                required
+                maxLength={10}
                 value={staff.phone}
                 onChange={handleChange}
-                className="w-full rounded-lg border p-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder="Enter phone number"
+                className={`w-full rounded-lg border ${errors.phone ? 'border-red-500' : 'border-slate-300'} p-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
+                placeholder="Enter 10-digit phone number"
               />
+              {errors.phone && <p className="mt-1 text-xs text-red-500">{errors.phone}</p>}
             </div>
           </div>
 

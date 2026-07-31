@@ -1,6 +1,7 @@
 import { Key, X, Eye, EyeOff, RefreshCw, Copy, CheckCircle } from "lucide-react";
 import { useState } from "react";
 import { resetUserPassword } from "../../../api/adminService";
+import { showToast, showConfirm } from "../../../utils/ui-alerts";
 
 const genPassword = () => {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#!';
@@ -27,7 +28,7 @@ export default function ResetPasswordModal({ user, onClose }: ResetPasswordModal
       setDone(true);
     } catch (e) {
       console.error(e);
-      alert("Failed to reset password.");
+      showToast("Failed to reset password.", "error");
     } finally {
       setLoading(false);
     }

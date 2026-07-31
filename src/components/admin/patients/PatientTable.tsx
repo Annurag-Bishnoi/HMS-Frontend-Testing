@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import PatientRow from "./PatientRow";
 import PatientDetailsModal from "./PatientDetailsModal";
-import Pagination from "./Pagination";
+import Pagination from "../../common/Pagination";
 import DataTable, { TableEmptyRow } from "../../common/DataTable";
 import { tableHeadClass, tableHeadActionsClass } from "../../common/DataTable";
 import { getPatients, updatePatientStatus } from "../../../api/patientService";
 import type { Patient } from "../../../api/patientService";
+import { showToast, showConfirm } from "../../../utils/ui-alerts";
 
 interface Props {
   search: string;
@@ -44,7 +45,7 @@ export default function PatientTable({ search, status }: Omit<Props, 'department
       await updatePatientStatus(patient.id!.toString(), newStatus);
       await fetchPatients();
     } catch (err: any) {
-      alert("Failed to change status: " + (err.response?.data?.message || err.message));
+      showToast("Failed to change status: " + (err.response?.data?.message || err.message, "error"));
     }
   };
 

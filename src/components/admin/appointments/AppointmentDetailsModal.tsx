@@ -87,8 +87,8 @@ export default function AppointmentDetailsModal({ appointment, isOpen, onClose }
                   <Stethoscope size={24} />
                 </div>
                 <div>
-                  <p className="font-bold text-slate-800 text-lg">{appointment.doctorName}</p>
-                  <p className="text-sm text-slate-500">{appointment.department}</p>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1 block">Doctor</label>
+                  <p className="font-semibold text-slate-800">{appointment.doctorName}</p>
                 </div>
               </div>
             </div>

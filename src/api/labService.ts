@@ -58,3 +58,31 @@ export const markSampleCollected = async (testId: number): Promise<any> => {
   const res = await api.put(`/lab/tests/${testId}/sample-collected`);
   return res.data;
 };
+
+// ------------------------------------
+// Master Lab Test Management (Admin)
+// ------------------------------------
+
+export const getApprovedLabTests = async (): Promise<any[]> => {
+  const res = await api.get("/lab-master");
+  return Array.isArray(res.data) ? res.data : [];
+};
+
+export const approveLabTest = async (data: {
+  cielConceptId: string;
+  testName: string;
+  conceptClass?: string;
+  unitPrice: number;
+  active?: boolean;
+}): Promise<any> => {
+  const res = await api.post("/lab-master", data);
+  return res.data;
+};
+
+export const updateLabTest = async (id: number, data: {
+  unitPrice?: number;
+  active?: boolean;
+}): Promise<any> => {
+  const res = await api.put(`/lab-master/${id}`, data);
+  return res.data;
+};

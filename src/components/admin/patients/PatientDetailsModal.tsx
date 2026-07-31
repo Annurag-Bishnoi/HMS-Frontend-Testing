@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { resetPatientCredentials } from "../../../api/patientService";
 import type { Patient } from "../../../api/patientService";
 import { getUser } from "../../../utils/token";
+import { showToast, showConfirm } from "../../../utils/ui-alerts";
 
 interface Props {
   patient: Patient | null;
@@ -29,7 +30,7 @@ export default function PatientDetailsModal({ patient, onClose }: Props) {
   const handleResetCredentials = async () => {
     if (!patient?.id) return;
     
-    if (window.confirm(`Are you sure you want to reset credentials for ${patient.name}?`)) {
+    if (await showConfirm(`Are you sure you want to reset credentials for ${patient.name}?`)) {
       try {
         setIsResetting(true);
         const data = await resetPatientCredentials(patient.id.toString());
@@ -38,7 +39,7 @@ export default function PatientDetailsModal({ patient, onClose }: Props) {
           password: data.temporaryPassword
         });
       } catch (err: any) {
-        alert("Failed to reset credentials: " + (err.response?.data?.message || err.message));
+        showToast("Failed to reset credentials: " + (err.response?.data?.message || err.message, "error"));
       } finally {
         setIsResetting(false);
       }

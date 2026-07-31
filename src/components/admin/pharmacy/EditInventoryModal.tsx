@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { X, CheckCircle, Loader2 } from "lucide-react";
 import { pharmacyService } from "../../../api/pharmacyService";
 import type { InventoryItem } from "../../../api/pharmacyService";
+import { showToast, showConfirm } from "../../../utils/ui-alerts";
 
 interface EditInventoryModalProps {
   item: InventoryItem;
@@ -32,7 +33,7 @@ export default function EditInventoryModal({ item, onClose, onUpdate }: EditInve
         onClose();
       }, 1500);
     } catch (err: any) {
-      alert("Failed to update inventory item: " + (err.response?.data?.message || err.message));
+      showToast("Failed to update inventory item: " + (err.response?.data?.message || err.message, "error"));
       setSaving(false);
     }
   };
@@ -68,7 +69,7 @@ export default function EditInventoryModal({ item, onClose, onUpdate }: EditInve
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Medicine Name *</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Medicine Name <span className="text-red-500">*</span></label>
               <input
                 type="text"
                 required
@@ -80,7 +81,7 @@ export default function EditInventoryModal({ item, onClose, onUpdate }: EditInve
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Reorder Level *</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Reorder Level <span className="text-red-500">*</span></label>
               <input
                 type="number"
                 required

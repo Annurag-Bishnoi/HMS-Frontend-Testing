@@ -1,28 +1,34 @@
 import DataTable, { tableHeadClass, tableRowClass, tableCellClass } from '../../../components/common/DataTable';
 import React, { useState, useEffect } from "react";
-import { Pill, RefreshCw, CheckCircle, Clock, Activity } from "lucide-react";
+import { Pill, RefreshCw, CheckCircle, Clock, Activity, XCircle, FileText } from "lucide-react";
 import { pharmacyService } from "../../../api/pharmacyService";
 import type { Prescription } from "../../../api/pharmacyService";
 import PendingPrescriptionsTable from "../../../components/admin/pharmacy/PendingPrescriptionsTable";
 import DispenseModal from "../../../components/admin/pharmacy/DispenseModal";
+import InvoicePreviewModal from "../../../components/admin/pharmacy/InvoicePreviewModal";
+import RejectConfirmationModal from "../../../components/admin/pharmacy/RejectConfirmationModal";
 
 export default function PharmacyDispensePage() {
   const [pending, setPending] = useState<Prescription[]>([]);
   const [dispensed, setDispensed] = useState<Prescription[]>([]);
+  const [rejected, setRejected] = useState<Prescription[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'pending' | 'dispensed'>('pending');
+  const [activeTab, setActiveTab] = useState<'pending' | 'dispensed' | 'rejected'>('pending');
   const [isDispenseOpen, setIsDispenseOpen] = useState(false);
   const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null);
+  const [prescriptionToReject, setPrescriptionToReject] = useState<Prescription | null>(null);
+  const [invoicePatientId, setInvoicePatientId] = useState<number | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [p, d] = await Promise.all([
-        pharmacyService.getPendingPrescriptions(),
-        pharmacyService.getDispensedPrescriptions(),
-      ]);
-      setPending(Array.isArray(p) ? p : []);
-      setDispensed(Array.isArray(d) ? d : []);
+      const pendingData = await pharmacyService.getPendingPrescriptions().catch(() => []);
+      const dispensedData = await pharmacyService.getDispensedPrescriptions().catch(() => []);
+      const rejectedData = await pharmacyService.getRejectedPrescriptions().catch(() => []);
+      
+      setPending(Array.isArray(pendingData) ? pendingData : []);
+      setDispensed(Array.isArray(dispensedData) ? dispensedData : []);
+      setRejected(Array.isArray(rejectedData) ? rejectedData : []);
     } catch (err) {
       console.error("Failed to fetch prescriptions", err);
     } finally {
@@ -35,6 +41,22 @@ export default function PharmacyDispensePage() {
   const handleDispenseClick = (prescription: Prescription) => {
     setSelectedPrescription(prescription);
     setIsDispenseOpen(true);
+  };
+
+  const handleDiscardClick = (prescription: Prescription) => {
+    setPrescriptionToReject(prescription);
+  };
+
+  const executeDiscard = async () => {
+    if (!prescriptionToReject) return;
+    try {
+      setLoading(true);
+      await pharmacyService.discardPrescription(prescriptionToReject.prescriptionId);
+      fetchData();
+    } catch (err) {
+      alert("Failed to discard prescription");
+      setLoading(false);
+    }
   };
 
   return (
@@ -57,7 +79,7 @@ export default function PharmacyDispensePage() {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex items-center gap-4">
           <div className="p-3 rounded-xl bg-amber-50"><Clock className="text-amber-600" size={22} /></div>
           <div>
@@ -72,6 +94,13 @@ export default function PharmacyDispensePage() {
             <h3 className="text-2xl font-bold text-slate-800">{loading ? '…' : dispensed.length}</h3>
           </div>
         </div>
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex items-center gap-4">
+          <div className="p-3 rounded-xl bg-rose-50"><XCircle className="text-rose-600" size={22} /></div>
+          <div>
+            <p className="text-xs text-slate-500 font-medium">Rejected Orders</p>
+            <h3 className="text-2xl font-bold text-slate-800">{loading ? '…' : rejected.length}</h3>
+          </div>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -79,6 +108,7 @@ export default function PharmacyDispensePage() {
         {[
           { key: 'pending',   label: `Pending (${pending.length})`,   icon: Clock },
           { key: 'dispensed', label: `Dispensed (${dispensed.length})`, icon: CheckCircle },
+          { key: 'rejected', label: `Rejected (${rejected.length})`, icon: XCircle },
         ].map(t => (
           <button
             key={t.key}
@@ -103,52 +133,110 @@ export default function PharmacyDispensePage() {
         <PendingPrescriptionsTable
           prescriptions={pending}
           onDispense={handleDispenseClick}
+          onDiscard={handleDiscardClick}
         />
-      ) : (
-        /* Dispensed History Table */
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-          <div className="p-5 border-b border-slate-100">
-            <h3 className="font-bold text-slate-800 flex items-center gap-2">
-              <CheckCircle className="text-emerald-500" size={18} /> Dispensing History
-            </h3>
-          </div>
-          <div className="overflow-x-auto">
-            {dispensed.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-slate-400">
-                <CheckCircle size={44} className="mb-3 opacity-40" />
-                <p className="font-medium">No dispensed orders yet.</p>
-              </div>
-            ) : (
-              <DataTable>
-                <thead className="bg-slate-100 border-b border-slate-200">
-                  <tr>
-                    <th className={tableHeadClass}>Rx ID</th>
-                    <th className={tableHeadClass}>Patient</th>
-                    <th className={tableHeadClass}>Doctor</th>
-                    <th className={tableHeadClass}>Medicines</th>
-                    <th className={tableHeadClass}>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {dispensed.map(rx => (
-                    <tr key={rx.prescriptionId} className="border-b hover:bg-slate-50 transition-colors cursor-pointer group">
-                      <td className="px-6 py-4 font-mono text-slate-600 font-bold">#{String(rx.prescriptionId).padStart(4, '0')}</td>
-                      <td className="px-6 py-4 font-semibold text-slate-800">{rx.patient?.name || '—'}</td>
-                      <td className="px-6 py-4 text-slate-600">Dr. {rx.doctor?.name || '—'}</td>
-                      <td className="px-6 py-4 text-slate-600 text-xs">
-                        {rx.medications?.length ? `${rx.medications.length} item${rx.medications.length > 1 ? 's' : ''}` : '—'}
-                      </td>
-                      <td className={tableCellClass}>
+      ) : activeTab === 'dispensed' ? (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          <DataTable>
+            <thead className="bg-slate-50 border-b border-slate-200">
+              <tr>
+                <th className={tableHeadClass}>Prescription ID</th>
+                <th className={tableHeadClass}>Patient</th>
+                <th className={tableHeadClass}>Doctor</th>
+                <th className={tableHeadClass}>Medicines</th>
+                <th className={tableHeadClass}>Date Dispensed</th>
+                <th className={tableHeadClass}>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {dispensed.length === 0 ? (
+                <TableEmptyRow colSpan={6} message="No dispensed prescriptions yet." />
+              ) : (
+                dispensed.map((rx) => (
+                  <tr key={rx.prescriptionId} className={tableRowClass}>
+                    <td className={`${tableCellClass} font-semibold`}>
+                      #PRE-{rx.prescriptionId}
+                    </td>
+                    <td className={tableCellClass}>
+                      {rx.patient?.name || `Patient #${rx.patient?.patientId}`}
+                    </td>
+                    <td className={tableCellClass}>
+                      Dr. {rx.doctor?.name || rx.doctor?.doctorId}
+                    </td>
+                    <td className="px-6 py-4 text-slate-600 text-xs max-w-[200px] truncate" title={rx.medications?.map((m: any) => `${m.medicineName} (${m.quantity})`).join(', ')}>
+                      {rx.medications?.length 
+                        ? rx.medications.map((m: any) => `${m.medicineName} (${m.quantity})`).join(', ') 
+                        : '—'}
+                    </td>
+                    <td className={tableCellClass}>
+                      {new Date(rx.createdAt).toLocaleString()}
+                    </td>
+                    <td className={tableCellClass}>
+                      <div className="flex items-center gap-2">
                         <span className="inline-flex items-center gap-1 text-xs font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full">
                           <CheckCircle size={11} /> Dispensed
                         </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </DataTable>
-            )}
-          </div>
+                        <button
+                          onClick={() => setInvoicePatientId(rx.patient.patientId)}
+                          className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full hover:bg-blue-100 transition"
+                        >
+                          <FileText size={12} /> View Invoice
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </DataTable>
+        </div>
+      ) : (
+        /* Rejected History Table */
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          <DataTable>
+            <thead className="bg-slate-50 border-b border-slate-200">
+              <tr>
+                <th className={tableHeadClass}>Prescription ID</th>
+                <th className={tableHeadClass}>Patient</th>
+                <th className={tableHeadClass}>Doctor</th>
+                <th className={tableHeadClass}>Unavailable Medicines</th>
+                <th className={tableHeadClass}>Date Created</th>
+                <th className={tableHeadClass}>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rejected.length === 0 ? (
+                <TableEmptyRow colSpan={6} message="No rejected prescriptions." />
+              ) : (
+                rejected.map((rx) => (
+                  <tr key={rx.prescriptionId} className={tableRowClass}>
+                    <td className={`${tableCellClass} font-semibold text-rose-600`}>
+                      #PRE-{rx.prescriptionId}
+                    </td>
+                    <td className={tableCellClass}>
+                      {rx.patient?.name || `Patient #${rx.patient?.patientId}`}
+                    </td>
+                    <td className={tableCellClass}>
+                      Dr. {rx.doctor?.name || rx.doctor?.doctorId}
+                    </td>
+                    <td className="px-6 py-4 text-slate-600 text-xs max-w-[200px] truncate" title={rx.medications?.map((m: any) => `${m.medicineName} (${m.quantity})`).join(', ')}>
+                      {rx.medications?.length 
+                        ? rx.medications.map((m: any) => `${m.medicineName}`).join(', ') 
+                        : '—'}
+                    </td>
+                    <td className={tableCellClass}>
+                      {new Date(rx.createdAt).toLocaleString()}
+                    </td>
+                    <td className={tableCellClass}>
+                      <span className="inline-flex items-center gap-1 text-xs font-bold bg-rose-50 text-rose-700 px-2.5 py-1 rounded-full border border-rose-200">
+                        Rejected
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </DataTable>
         </div>
       )}
 
@@ -157,7 +245,23 @@ export default function PharmacyDispensePage() {
         isOpen={isDispenseOpen}
         onClose={() => { setIsDispenseOpen(false); setSelectedPrescription(null); }}
         onSuccess={fetchData}
+        onReject={handleDiscardClick}
         prescription={selectedPrescription}
+      />
+
+      {/* Invoice Modal */}
+      <InvoicePreviewModal
+        isOpen={invoicePatientId !== null}
+        onClose={() => setInvoicePatientId(null)}
+        patientId={invoicePatientId || 0}
+      />
+
+      {/* Reject Confirmation Modal */}
+      <RejectConfirmationModal
+        isOpen={prescriptionToReject !== null}
+        onClose={() => setPrescriptionToReject(null)}
+        onConfirm={executeDiscard}
+        prescription={prescriptionToReject}
       />
     </div>
   );

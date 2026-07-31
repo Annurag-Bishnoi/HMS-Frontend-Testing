@@ -1,9 +1,9 @@
 import {
-  Search,
   Bell,
   Mail,
   UserCircle,
 } from "lucide-react";
+import { getUser } from "../../utils/token";
 
 export default function Topbar() {
   const today = new Date().toLocaleDateString("en-IN", {
@@ -12,6 +12,13 @@ export default function Topbar() {
     month: "long",
     year: "numeric",
   });
+  const user = getUser();
+  
+  // Format the role to look nice (e.g., "SUPER_ADMIN" -> "Super Admin", "DOCTOR" -> "Doctor")
+  const formatRole = (role?: string) => {
+    if (!role) return "User";
+    return role.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+  };
 
   return (
     <header className="mb-8 flex items-center justify-between">
@@ -31,24 +38,6 @@ export default function Topbar() {
       {/* Right */}
 
       <div className="flex items-center gap-4">
-
-        {/* Search */}
-
-        <div className="relative hidden md:block">
-
-          <Search
-            size={18}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-          />
-
-          <input
-            type="text"
-            placeholder="Search..."
-            className="w-72 rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-4 outline-none focus:border-blue-500"
-          />
-
-        </div>
-
         {/* Profile */}
 
         <div className="flex items-center gap-3 rounded-xl bg-white px-4 py-2 shadow">
@@ -59,15 +48,12 @@ export default function Topbar() {
           />
 
           <div>
-
-            <h3 className="font-semibold">
-              Admin
+            <h3 className="font-semibold text-slate-800">
+              {user?.name || user?.username || "Guest"}
             </h3>
-
             <p className="text-sm text-slate-500">
-              Super Administrator
+              {formatRole(user?.role)}
             </p>
-
           </div>
 
         </div>

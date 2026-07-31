@@ -1,4 +1,6 @@
-import { X, Package, Hash, AlertTriangle, CheckCircle2, Calendar } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { X, Package, Hash, AlertTriangle, CheckCircle2, Calendar, ClipboardList } from "lucide-react";
+import { pharmacyService } from "../../../api/pharmacyService";
 import type { InventoryItem } from "../../../api/pharmacyService";
 
 interface ViewInventoryModalProps {
@@ -7,13 +9,23 @@ interface ViewInventoryModalProps {
 }
 
 export default function ViewInventoryModal({ item, onClose }: ViewInventoryModalProps) {
+  const [batches, setBatches] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    pharmacyService.getBatches(item.inventoryItemId)
+      .then(data => setBatches(data || []))
+      .catch(err => console.error("Failed to load batches:", err))
+      .finally(() => setLoading(false));
+  }, [item.inventoryItemId]);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-in fade-in">
-      <div className="w-full max-w-md rounded-2xl bg-white shadow-xl flex flex-col">
+      <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl flex flex-col">
         <div className="flex items-center justify-between border-b px-6 py-4 bg-slate-50 rounded-t-2xl">
           <div>
             <h2 className="text-lg font-semibold text-slate-800">Inventory Details</h2>
-            <p className="text-sm text-slate-500">View medication stock information</p>
+            <p className="text-sm text-slate-500">View medication stock and batch breakdown</p>
           </div>
           <button
             onClick={onClose}
@@ -23,9 +35,9 @@ export default function ViewInventoryModal({ item, onClose }: ViewInventoryModal
           </button>
         </div>
         
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-5 overflow-y-auto max-h-[75vh]">
           <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-blue-600 animate-pulse">
               <Package size={24} />
             </div>
             <div>
@@ -69,6 +81,47 @@ export default function ViewInventoryModal({ item, onClose }: ViewInventoryModal
               <span className="text-sm font-medium text-slate-800">
                 {item.nearestExpiryDate ? new Date(item.nearestExpiryDate).toLocaleDateString() : "N/A"}
               </span>
+            </div>
+          </div>
+
+          {/* Active Batches breakdown */}
+          <div className="pt-2">
+            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+              <ClipboardList className="text-slate-400" size={16} /> Active Stock Batches
+            </h4>
+            <div className="border border-slate-200 rounded-xl overflow-hidden text-xs max-h-40 overflow-y-auto shadow-inner bg-slate-50/20">
+              {loading ? (
+                <div className="py-8 text-center text-slate-400 font-medium">Loading batch history...</div>
+              ) : batches.length === 0 ? (
+                <div className="py-8 text-center text-slate-400 font-medium">No stock batches registered.</div>
+              ) : (
+                <table className="min-w-full divide-y divide-slate-150">
+                  <thead className="bg-slate-100 text-slate-500 font-bold uppercase tracking-wider text-[9px] sticky top-0">
+                    <tr>
+                      <th className="px-4 py-2.5 text-left">Batch No.</th>
+                      <th className="px-4 py-2.5 text-left">Supplier</th>
+                      <th className="px-4 py-2.5 text-right">Quantity</th>
+                      <th className="px-4 py-2.5 text-right">Unit Price</th>
+                      <th className="px-4 py-2.5 text-center">Expiry</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 bg-white">
+                    {batches.map((batch) => (
+                      <tr key={batch.batchId} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="px-4 py-2 font-mono font-bold text-slate-600">{batch.batchNumber}</td>
+                        <td className="px-4 py-2 text-left text-slate-500 font-medium truncate max-w-[120px]" title={batch.supplierName}>
+                          {batch.supplierName || "—"}
+                        </td>
+                        <td className="px-4 py-2 text-right font-bold text-slate-800">{batch.quantity} units</td>
+                        <td className="px-4 py-2 text-right text-slate-600 font-semibold">₹{parseFloat(batch.unitPrice).toFixed(2)}</td>
+                        <td className="px-4 py-2 text-center text-slate-600 font-medium">
+                          {batch.expiryDate ? new Date(batch.expiryDate).toLocaleDateString() : "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
         </div>

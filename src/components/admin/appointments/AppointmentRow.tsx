@@ -34,8 +34,9 @@ export default function AppointmentRow({
     <tr className={tableRowClass}>
       <td className={tableCellClass}>{appointment.patientName}</td>
       <td className={`${tableCellClass} font-semibold`}>{appointment.patientId}</td>
-      <td className={tableCellClass}>{appointment.doctorName}</td>
-      <td className={tableCellClass}>{appointment.department}</td>
+      <td className={tableCellClass}>
+        <div className="font-medium text-slate-800">{appointment.doctorName}</div>
+      </td>
       <td className={tableCellClass}>{appointment.appointmentDate}</td>
       <td className={tableCellClass}>{appointment.appointmentTime}</td>
       <td className={tableCellClass}>
