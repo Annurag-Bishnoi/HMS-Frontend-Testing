@@ -129,42 +129,7 @@ export default function NurseDetailsModal({ staff, onClose, onUpdate }: NurseDet
               </div>
             </div>
 
-            <div className="space-y-6">
-              <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Security Actions</h3>
-                <div className="space-y-3">
-                  <button 
-                    onClick={handleResetCredentials}
-                    disabled={loading}
-                    className="w-full flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 transition group"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="p-1.5 rounded-lg bg-blue-100 text-blue-600 group-hover:bg-blue-200"><KeyRound size={16} /></div>
-                      <span className="font-semibold text-sm text-slate-700 group-hover:text-blue-700">Reset Credentials</span>
-                    </div>
-                  </button>
-
-                  <button 
-                    onClick={handleLockToggle}
-                    disabled={loading}
-                    className={`w-full flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl transition group ${
-                      staff.accountLocked 
-                        ? 'hover:border-emerald-300 hover:bg-emerald-50' 
-                        : 'hover:border-amber-300 hover:bg-amber-50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`p-1.5 rounded-lg ${staff.accountLocked ? 'bg-emerald-100 text-emerald-600 group-hover:bg-emerald-200' : 'bg-amber-100 text-amber-600 group-hover:bg-amber-200'}`}>
-                        {staff.accountLocked ? <Unlock size={16} /> : <Lock size={16} />}
-                      </div>
-                      <span className={`font-semibold text-sm ${staff.accountLocked ? 'text-slate-700 group-hover:text-emerald-700' : 'text-slate-700 group-hover:text-amber-700'}`}>
-                        {staff.accountLocked ? 'Unlock Account' : 'Lock Account'}
-                      </span>
-                    </div>
-                  </button>
-                </div>
-              </div>
-            </div>
+            {/* Security Actions Removed per request */}
           </div>
         </div>
 
