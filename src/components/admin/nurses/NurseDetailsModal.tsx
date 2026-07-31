@@ -129,7 +129,23 @@ export default function NurseDetailsModal({ staff, onClose, onUpdate }: NurseDet
               </div>
             </div>
 
-            {/* Security Actions Removed per request */}
+            <div className="space-y-6">
+              <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Security Actions</h3>
+                <div className="space-y-3">
+                  <button 
+                    onClick={handleResetCredentials}
+                    disabled={loading}
+                    className="w-full flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 transition group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-1.5 rounded-lg bg-blue-100 text-blue-600 group-hover:bg-blue-200"><KeyRound size={16} /></div>
+                      <span className="font-semibold text-sm text-slate-700 group-hover:text-blue-700">Reset Credentials</span>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
