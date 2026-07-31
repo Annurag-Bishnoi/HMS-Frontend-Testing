@@ -230,7 +230,7 @@ export default function ManageBeds() {
               ) : (
                 currentBeds.map((bed) => (
                   <tr 
-                    key={bed.bedId} 
+                    key={bed.id} 
                     className={`${tableRowClass} transition-colors ${bed.status === 'OCCUPIED' ? 'cursor-pointer hover:bg-blue-50' : 'hover:bg-slate-50'}`}
                     onClick={() => bed.status === 'OCCUPIED' ? handleOccupiedBedClick(bed) : null}
                   >
