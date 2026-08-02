@@ -193,7 +193,8 @@ export default function DoctorPrescriptionsPage() {
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [selectedPatientName, setSelectedPatientName] = useState('');
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
 
   useEffect(() => { init(); }, []);

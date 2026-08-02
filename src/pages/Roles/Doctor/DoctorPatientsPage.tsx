@@ -115,8 +115,12 @@ export default function DoctorPatientsPage() {
             <p className="text-xs text-slate-500 font-medium">Seen Today</p>
             <p className="text-2xl font-bold text-slate-800">
               {doctorVisits.filter((v: any) => {
-                const d = v.visitDate ? new Date(v.visitDate).toISOString().split('T')[0] : '';
-                return d === new Date().toISOString().split('T')[0];
+                if (!v.visitDate) return false;
+                const vDate = new Date(v.visitDate);
+                const d = `${vDate.getFullYear()}-${String(vDate.getMonth() + 1).padStart(2, '0')}-${String(vDate.getDate()).padStart(2, '0')}`;
+                const now = new Date();
+                const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                return d === todayStr;
               }).length}
             </p>
           </div>

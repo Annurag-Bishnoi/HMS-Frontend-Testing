@@ -112,7 +112,7 @@ export default function AppointmentList() {
         onView={handleView}
         onEdit={handleEdit}
         onDelete={handleDelete}
-        onTriage={user?.role === "RECEPTIONIST" || user?.role === "ADMIN" ? handleTriage : undefined}
+        onTriage={user?.role === "ADMIN" ? handleTriage : undefined}
       />
 
       {/* Pagination Controls */}

@@ -21,7 +21,8 @@ export default function NurseDashboard() {
     try {
       setLoading(true);
       const appointments = await getAppointments();
-      const todayStr = new Date().toISOString().split('T')[0];
+      const now = new Date();
+      const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
       
       const todayOpd = appointments.filter(a => a.appointmentDate === todayStr && a.status !== 'CANCELLED');
       const activeOpd = todayOpd.filter(a => ['SCHEDULED', 'CONFIRMED', 'WAITING_FOR_VITALS'].includes(a.status));

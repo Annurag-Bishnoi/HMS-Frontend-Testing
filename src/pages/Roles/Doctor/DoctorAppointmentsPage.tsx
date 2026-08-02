@@ -39,7 +39,8 @@ export default function DoctorAppointmentsPage() {
   const [doctorId, setDoctorId] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState('ALL');
   const [search, setSearch] = useState('');
-  const todayStr = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   
   // History Modal State
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);

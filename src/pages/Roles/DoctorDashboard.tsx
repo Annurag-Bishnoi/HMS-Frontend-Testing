@@ -53,9 +53,13 @@ export default function DoctorDashboard() {
     }
   };
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  
   const completedToday = doctorVisits.filter((v: any) => {
-    const d = v.visitDate ? new Date(v.visitDate).toISOString().split('T')[0] : '';
+    if (!v.visitDate) return false;
+    const vDate = new Date(v.visitDate);
+    const d = `${vDate.getFullYear()}-${String(vDate.getMonth() + 1).padStart(2, '0')}-${String(vDate.getDate()).padStart(2, '0')}`;
     return d === todayStr;
   }).length;
   const uniquePatients = new Set(doctorVisits.map((v: any) => String(v.patientId))).size;

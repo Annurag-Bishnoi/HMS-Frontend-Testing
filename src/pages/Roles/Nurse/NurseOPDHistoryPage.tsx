@@ -85,7 +85,8 @@ export default function NurseOPDHistoryPage() {
     try {
       setLoading(true);
       const appointments = await getAppointments();
-      const todayStr = new Date().toISOString().split('T')[0];
+      const now = new Date();
+      const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
       
       const todayOpd = appointments.filter(a => a.appointmentDate === todayStr && a.status !== 'CANCELLED');
       const pastOpd = todayOpd.filter(a => ['READY_FOR_DOCTOR', 'IN_CONSULTATION', 'WAITING_FOR_LABS', 'COMPLETED'].includes(a.status));
