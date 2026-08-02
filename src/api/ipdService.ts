@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getToken } from '../utils/token';
 
-const API_URL = 'https://hospital-management-system-production-ba1e.up.railway.app/api/ipd';
+const API_URL = 'http://localhost:8081/api/ipd';
 
 const getAuthHeaders = () => {
   const token = getToken();

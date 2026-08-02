@@ -21,7 +21,7 @@ export default function DocumentViewerModal({ url, onClose }: DocumentViewerModa
         // Since url is like '/uploads/file.pdf', we remove '/api' from baseURL if we want to hit root
         // But the easiest way is to use a direct absolute URL if it's static
         // Or we just strip /api from the default baseURL
-        const baseURL = api.defaults.baseURL?.replace('/api', '') || 'https://hospital-management-system-production-ba1e.up.railway.app';
+        const baseURL = api.defaults.baseURL?.replace('/api', '') || 'http://localhost:8081';
         const fullUrl = `${baseURL}${url}`;
         
         const response = await api.get(fullUrl, {
@@ -46,7 +46,7 @@ export default function DocumentViewerModal({ url, onClose }: DocumentViewerModa
   }, [url]);
 
   // Fallback URL for opening in a new tab if needed
-  const fallbackUrl = `${api.defaults.baseURL?.replace('/api', '') || 'https://hospital-management-system-production-ba1e.up.railway.app'}${url}`;
+  const fallbackUrl = `${api.defaults.baseURL?.replace('/api', '') || 'http://localhost:8081'}${url}`;
   
   return (
     <div className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
